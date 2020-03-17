@@ -345,18 +345,18 @@ class Model(nn.Module):
 
         self.feature = nn.Sequential(
             MetaConv2d(input_channel, 128, 3),
-            MetaConv2d(128, 128, 3),
-            MetaConv2d(128, 128, 3),
+            MetaConv2d(128, 128, 3, 2, 1),
+            MetaConv2d(128, 128, 3, 2, 1),
             nn.MaxPool2d(2, stride = 2),
             nn.Dropout(p = 0.25),
-            MetaConv2d(128, 256, 3),
-            MetaConv2d(256, 256, 3),
-            MetaConv2d(256, 256, 3),
+            MetaConv2d(128, 256, 3, 2, 1),
+            MetaConv2d(256, 256, 3, 2, 1),
+            MetaConv2d(256, 256, 3, 2, 1),
             nn.MaxPool2d(2, stride = 2),
             nn.Dropout(p = 0.25),
-            MetaConv2d(256, 512, 3),
-            MetaConv2d(512, 256, 3),
-            MetaConv2d(256, 128, 3),
+            MetaConv2d(256, 512, 3, 2, 1),
+            MetaConv2d(512, 256, 3, 2, 1),
+            MetaConv2d(256, 128, 3, 2, 1),
             nn.AdaptiveAvgPool2d((1,1)),
         )
 
