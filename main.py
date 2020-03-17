@@ -140,7 +140,7 @@ def val(model, val_loader, use_CUDA = True):
     accs = []
     losses = []
     with torch.no_grad():
-        for (input, label) in train_loader:
+        for (input, label) in val_loader:
             input = to_var(input, requires_grad = False)
             label = to_var(label, requires_grad = False).long()
 
