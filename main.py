@@ -93,7 +93,7 @@ def train(model, input_channel, optimizer, criterion, train_loader, val_loader, 
             meta_model = meta_model.cuda()
         
         y_f_hat = meta_model(input)
-        prob = torch.sigmoid(y_f_hat).unsqueeze(-1)
+        prob = torch.sigmoid(y_f_hat)
         cost = meta_criterion(prob, label)
         eps = torch.zeros(cost.size())
         l_f_meta = (cost * eps).sum()
@@ -106,7 +106,7 @@ def train(model, input_channel, optimizer, criterion, train_loader, val_loader, 
             iter_train_loader = iter(val_loader)
             val_input, val_label = next(iter_train_loader)
         y_g_hat = meta_model(val_input)
-        val_prob = torch.sigmoid(y_g_hat).unsqueeze(-1)
+        val_prob = torch.sigmoid(y_g_hat)
         l_g_meta = meta_criterion(val_prob, val_label)
         grad_eps = torch.autograd.grad(l_g_meta, eps, only_inputs = True)[0]
 
