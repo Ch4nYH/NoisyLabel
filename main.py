@@ -118,7 +118,7 @@ def train(model, input_channel, optimizer, criterion, train_loader, val_loader, 
         w = grad_eps / norm_c
 
         output = model(input)
-        loss = (w * meta_criterion(output, label)).sum()
+        loss = (meta_criterion(output, label) * eps).sum()
 
         prediction = torch.softmax(output, 1)
 
