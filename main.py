@@ -91,7 +91,7 @@ def train(model, input_channel, optimizer, criterion, train_loader, val_loader, 
             meta_model = meta_model.cuda()
 
         input = to_var(input, requires_grad = False)
-        label = to_var(label.float(), requires_grad = False).long()
+        label = to_var(label, requires_grad = False).long()
         y_f_hat = meta_model(input)
         cost = meta_criterion(y_f_hat, label)
         eps = to_var(torch.zeros(cost.size()))
@@ -107,7 +107,7 @@ def train(model, input_channel, optimizer, criterion, train_loader, val_loader, 
             val_input, val_label = next(iter_val_loader)
 
         val_input = to_var(val_input, requires_grad = False)
-        val_label = to_var(val_label.float(), requires_grad = False).long()
+        val_label = to_var(val_label, requires_grad = False).long()
 
         y_g_hat = meta_model(val_input)
         l_g_meta = meta_criterion(y_g_hat, val_label).sum()
