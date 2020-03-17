@@ -112,7 +112,7 @@ def train(model, input_channel, optimizer, criterion, train_loader, val_loader, 
 
         y_g_hat = meta_model(val_input)
         val_prob = torch.sigmoid(y_g_hat)
-        l_g_meta = meta_criterion(val_prob, val_label)
+        l_g_meta = meta_criterion(val_prob, val_label).sum()
         grad_eps = torch.autograd.grad(l_g_meta, eps, only_inputs = True)[0]
 
         norm_c = torch.sum(abs(w_tilde))
