@@ -344,7 +344,7 @@ class Model(nn.Module):
         super(Model, self).__init__()
 
         self.feature = nn.Sequential(
-            MetaConv2d(input_channel, 128, 3),
+            MetaConv2d(input_channel, 128, 3, 2, 1),
             MetaConv2d(128, 128, 3, 2, 1),
             MetaConv2d(128, 128, 3, 2, 1),
             nn.MaxPool2d(2, stride = 2),
