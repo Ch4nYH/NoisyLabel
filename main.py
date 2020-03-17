@@ -130,8 +130,8 @@ def train(model, input_channel, optimizer, criterion, train_loader, val_loader, 
         accs.append(top1)
         losses.append(loss.detach())
 
-    acc = np.mean(np.array(accs))
-    loss = np.mean(np.array(losses))
+    acc = sum(accs) / len(accs)
+    loss = sum(losses) / len(losses)
     print("Training Epoch: {}, Accuracy: {}, Losses: {}".format(epoch, acc, loss))
     return acc, loss
 
@@ -157,8 +157,8 @@ def val(model, val_loader, use_CUDA = True):
             accs.append(top1)
             losses.append(loss.detach())
 
-    acc = np.mean(np.array(accs))
-    loss = np.mean(np.array(losses))
+    acc = sum(accs) / len(accs)
+    loss = sum(losses) / len(losses)
     print("Validation Epoch: {}, Accuracy: {}, Losses: {}".format(epoch, acc, loss))
     return acc, loss
 
