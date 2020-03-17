@@ -45,7 +45,7 @@ def main():
     scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer,
         [80], gamma=0.5, last_epoch=-1)
 
-    if not os.exist(args.modeldir):
+    if not os.path.exists(args.modeldir):
         os.mkdir(args.modeldir)
 
     action_space = np.arange(0, 1.1, 0.1)
