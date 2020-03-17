@@ -103,8 +103,8 @@ def train(model, input_channel, optimizer, criterion, train_loader, val_loader, 
         try:
             val_input, val_label = next(iter_val_loader)
         except:
-            iter_train_loader = iter(val_loader)
-            val_input, val_label = next(iter_train_loader)
+            iter_val_loader = iter(val_loader)
+            val_input, val_label = next(iter_val_loader)
         y_g_hat = meta_model(val_input)
         val_prob = torch.sigmoid(y_g_hat)
         l_g_meta = meta_criterion(val_prob, val_label)

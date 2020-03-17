@@ -66,7 +66,7 @@ class MNISTDataset(BaseDataset):
             self.x = self.x_tr
             self.y = noisy_tr
         else:
-            self.x = self.y_te
+            self.x = self.x_te
             self.y = self.y_te
 
 
