@@ -8,7 +8,7 @@ from torch.utils.data import DataLoader
 
 from datasets import MNISTDataset
 from utils import get_args, accuracy
-from meta_models import Model
+from meta_models import Model, to_var
 
 from a2c_ppo_acktr import algo, utils
 from a2c_ppo_acktr.models.policy import Policy
@@ -88,14 +88,14 @@ def train(model, input_channel, optimizer, criterion, train_loader, val_loader, 
         meta_model = Model(input_channel = input_channel)
         meta_model.load_state_dict(model.state_dict())
         if use_CUDA:
-            input = input.cuda()
-            label = label.long().cuda()
+            
             meta_model = meta_model.cuda()
-        input.requires_grad = False
-        label.requires_grad = False
+
+        input = to_var(input, requires_grad = False)
+        label = to_var(label).long()
         y_f_hat = meta_model(input)
         cost = meta_criterion(y_f_hat, label)
-        eps = torch.zeros(cost.size(), device = input.device)
+        eps = to_var(torch.zeros(cost.size()))
         l_f_meta = (cost * eps).sum()
         meta_model.zero_grad()
 
@@ -107,9 +107,8 @@ def train(model, input_channel, optimizer, criterion, train_loader, val_loader, 
             iter_val_loader = iter(val_loader)
             val_input, val_label = next(iter_val_loader)
 
-        if use_CUDA:
-            val_input = val_input.cuda()
-            val_label = val_label.cuda().long()
+        val_input = to_var(val_input, requires_grad = False)
+        val_label = to_var(val_label, requires_grad = False)
 
         y_g_hat = meta_model(val_input)
         l_g_meta = meta_criterion(y_g_hat, val_label).sum()
