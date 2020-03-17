@@ -60,7 +60,7 @@ class MNISTDataset(BaseDataset):
         self.transform = transform
 
         num_classes = len(set(list(self.y_tr)))      
-        noisy_tr = make_random_labels(y_tr, num_classes = num_classes, seed = seed)
+        noisy_tr = make_random_labels(self.y_tr, num_classes = num_classes, seed = seed)
 
         if (split == 'train'):
             self.x = self.x_tr
