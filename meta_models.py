@@ -344,19 +344,19 @@ class Model(MetaModule):
         super(Model, self).__init__()
 
         
-        self.conv1 = MetaConv2d(input_channel, 128, 3, padding = 2),
-        self.conv2 = MetaConv2d(128, 128, 3, padding = 2),
-        self.conv3 = MetaConv2d(128, 128, 3, padding = 2),
+        self.conv1 = MetaConv2d(input_channel, 128, 3, padding = 2)
+        self.conv2 = MetaConv2d(128, 128, 3, padding = 2)
+        self.conv3 = MetaConv2d(128, 128, 3, padding = 2)
         #elf.conv1 = nn.MaxPool2d(2, stride = 2),
         #self.conv1 = nn.Dropout(p = 0.25),
-        self.conv4 = MetaConv2d(128, 256, 3, padding = 2),
-        self.conv5 = MetaConv2d(256, 256, 3, padding = 2),
-        self.conv6 = MetaConv2d(256, 256, 3, padding = 2),
+        self.conv4 = MetaConv2d(128, 256, 3, padding = 2)
+        self.conv5 = MetaConv2d(256, 256, 3, padding = 2)
+        self.conv6 = MetaConv2d(256, 256, 3, padding = 2)
         #self.conv1 = nn.MaxPool2d(2, stride = 2),
         #self.conv1 = nn.Dropout(p = 0.25),
-        self.conv7 = MetaConv2d(256, 512, 3, padding = 2),
-        self.conv8 = MetaConv2d(512, 256, 3, padding = 2),
-        self.conv9 = MetaConv2d(256, 128, 3, padding = 2),
+        self.conv7 = MetaConv2d(256, 512, 3, padding = 2)
+        self.conv8 = MetaConv2d(512, 256, 3, padding = 2)
+        self.conv9 = MetaConv2d(256, 128, 3, padding = 2)
         
 
         self.classifier = MetaLinear(128, num_classes)
