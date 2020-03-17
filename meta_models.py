@@ -359,7 +359,7 @@ class Model(MetaModule):
         self.conv9 = MetaConv2d(256, 128, 3, padding = 2)
         
 
-        self.classifier = MetaLinear(128, num_classes)
+        self.classifier = MetaLinear(128, num_classes, bias = False)
 
     def forward(self, x, training = True):
         x = self.conv1(x)
@@ -376,5 +376,6 @@ class Model(MetaModule):
         x = self.conv9(x)
         x = F.adaptive_avg_pool2d(x, 1)
         x = x.view(-1, 128)
+        #print(x.shape)
         out = self.classifier(x)
         return out
