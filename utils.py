@@ -154,11 +154,6 @@ def get_args():
         default = 'mnist'
     )
     parser.add_argument(
-        '--lr',
-        type=float,
-        default = 1e-3
-    )
-    parser.add_argument(
         '--gpu',
         type=str,
         default = ""
