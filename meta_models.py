@@ -341,7 +341,7 @@ class MetaMLP(MetaModule):
     
 class Model(nn.Module):
     def __init__(self, num_classes = 10, input_channel = 3):
-        super(CNNModel, self).__init__()
+        super(Model, self).__init__()
 
         self.feature = nn.Sequential(
             MetaConv2d(input_channel, 128, 3),
