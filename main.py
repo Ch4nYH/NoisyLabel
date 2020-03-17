@@ -90,7 +90,7 @@ def train(model, input_channel, optimizer, criterion, train_loader, val_loader, 
         if use_CUDA:
             input = input.cuda()
             label = label.long().cuda()
-
+            meta_model = meta_model.cuda()
         
         y_f_hat = meta_model(input)
         prob = torch.sigmoid(y_f_hat).unsqueeze(-1)
