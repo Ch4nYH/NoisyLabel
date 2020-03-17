@@ -100,7 +100,8 @@ def train(model, input_channel, optimizer, criterion, train_loader, val_loader, 
         if index % 100 == 0:
             print("[{}/{}] Positive: {}, Negative: {}" .format(index, len(train_loader), torch.sum(grad_eps > 0), torch.sum(grad_eps < 0)))
         index += 1
-        norm_c = torch.sum(abs(grad_eps))
+        w = torch.clamp(-grad_eps, min = 0)
+        norm_c = torch.sum(w)
 
         w = grad_eps / norm_c
         print(w)
