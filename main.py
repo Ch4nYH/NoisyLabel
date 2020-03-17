@@ -103,7 +103,7 @@ def train(model, input_channel, optimizer, criterion, train_loader, val_loader, 
         norm_c = torch.sum(abs(grad_eps))
 
         w = grad_eps / norm_c
-
+        print(w)
         output = model(input)
         loss = (meta_criterion(output, label) * w).sum()
         print(loss)
