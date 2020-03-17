@@ -149,10 +149,6 @@ def val(model, val_loader, criterion, use_CUDA = True):
 
             prediction = torch.softmax(output, 1)
 
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
-
             top1 = accuracy(prediction, label)
             accs.append(top1)
             losses.append(loss.detach())
