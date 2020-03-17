@@ -85,7 +85,7 @@ def train(model, input_channel, optimizer, criterion, train_loader, val_loader, 
     iter_val_loader = iter(val_loader)
     meta_criterion = nn.CrossEntropyLoss(reduce = False)
     for (input, label) in train_loader:
-        meta_model = Model(input_channel)
+        meta_model = Model(input_channel = input_channel)
         meta_model.load_state_dict(model.state_dict())
         if use_CUDA:
             input = input.cuda()
