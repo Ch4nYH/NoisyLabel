@@ -105,6 +105,11 @@ def train(model, input_channel, optimizer, criterion, train_loader, val_loader, 
         except:
             iter_val_loader = iter(val_loader)
             val_input, val_label = next(iter_val_loader)
+            
+        if use_CUDA:
+            val_input = val_input.cuda()
+            val_label = val_label.cuda()
+
         y_g_hat = meta_model(val_input)
         val_prob = torch.sigmoid(y_g_hat)
         l_g_meta = meta_criterion(val_prob, val_label)
