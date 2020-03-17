@@ -95,7 +95,7 @@ def train(model, input_channel, optimizer, criterion, train_loader, val_loader, 
         y_f_hat = meta_model(input)
         prob = torch.sigmoid(y_f_hat)
         cost = meta_criterion(prob, label)
-        eps = torch.zeros(cost.size())
+        eps = torch.zeros(cost.size(), device = input.device)
         l_f_meta = (cost * eps).sum()
         meta_model.zero_grad()
 
