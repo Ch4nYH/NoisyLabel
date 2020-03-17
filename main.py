@@ -99,7 +99,7 @@ def train(model, input_channel, optimizer, criterion, train_loader, val_loader, 
         l_f_meta = (cost * eps).sum()
         meta_model.zero_grad()
 
-        grads = torch.autograd.grad(l_f_meta, (meta_model.params()), create_graph=True)
+        grads = torch.autograd.grad(l_f_meta, (meta_model.parameters()), create_graph=True)
         try:
             val_input, val_label = next(iter_val_loader)
         except:
