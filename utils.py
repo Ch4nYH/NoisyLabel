@@ -178,7 +178,7 @@ def get_args():
         '--seed', type=int, default=1, help='random seed (default: 1)')
 
     parser.add_argument(
-        '--epoch',
+        '--epochs',
         type=int,
         default = 200
     )
