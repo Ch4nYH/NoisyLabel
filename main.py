@@ -19,7 +19,7 @@ def main():
 
     args = get_args()
     criterion = nn.CrossEntropyLoss()
-
+    print(args)
     if len(args.gpu) > 0:
         os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
         use_CUDA = True
