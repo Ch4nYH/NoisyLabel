@@ -78,7 +78,7 @@ def main():
                 best_prec = prec
 
 
-def train(model, input_channel, optimizer, criterion, train_loader, val_loader, num_steps, epoch, use_CUDA = True):
+def train(model, input_channel, optimizer, criterion, train_loader, val_loader, epoch, use_CUDA = True):
     model.train()
     accs = []
     losses = []
@@ -112,7 +112,7 @@ def train(model, input_channel, optimizer, criterion, train_loader, val_loader, 
         y_g_hat = meta_model(val_input)
         l_g_meta = meta_criterion(y_g_hat, val_label).sum()
         grad_eps = torch.autograd.grad(l_g_meta, eps, only_inputs = True)[0]
-
+        print("Positive: {}, Negative: {}" .format(torch.sum(grad_eps > 0), torch.sum(grad_eps < 0)))
         norm_c = torch.sum(abs(grad_eps))
 
         w = grad_eps / norm_c
