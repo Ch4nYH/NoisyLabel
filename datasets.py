@@ -59,7 +59,7 @@ class MNISTDataset(BaseDataset):
         (self.x_tr, self.y_tr), (self.x_te, self.y_te) = get_mnist() 
         self.transform = transform
 
-        num_classes = len(set(self.x_tr))      
+        num_classes = len(set(list(self.x_tr)))      
         noisy_tr = make_random_labels(y_tr, num_classes = num_classes, seed = seed)
 
         if (split == 'train'):
