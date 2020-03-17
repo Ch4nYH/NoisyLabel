@@ -85,9 +85,6 @@ class MetaModule(nn.Module):
                     self.set_param(mod, rest, param)
                     break
         else:
-            print(curr_mod)
-            print(name)
-            print(param)
             getattr(curr_mod, name).data = param
             
     def detach_params(self):
