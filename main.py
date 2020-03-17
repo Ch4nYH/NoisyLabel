@@ -100,6 +100,7 @@ def train(model, input_channel, optimizer, criterion, train_loader, val_loader, 
         meta_model.zero_grad()
 
         grads = torch.autograd.grad(l_f_meta, (meta_model.parameters()), create_graph=True)
+        meta_model.update_params(0.001, source_params = grads)
         try:
             val_input, val_label = next(iter_val_loader)
         except:
