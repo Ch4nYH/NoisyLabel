@@ -53,7 +53,7 @@ def main():
     sgd_in_names = ["feature", "classifier"]
     obs_name = ["loss", "step", "fc_mean", "fc_std"]
     
-    actor_critic = Policy(coord_size, input_size=(len(obs_name),), action_space=len(action_space), hidden_size = 20, window_size = 1)
+    actor_critic = Policy(len(sgd_in_names), input_size=(len(obs_name),), action_space=len(action_space), hidden_size = 20, window_size = 1)
 
     agent = algo.A2C_ACKTR(
             actor_critic,
