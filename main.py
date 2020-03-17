@@ -70,7 +70,7 @@ def main():
     for meta_epoch in range(2):
         #model, optimizer, rollouts, current_optimizee_step, prev_optimizee_step = prepare_optimizee(args, input_channel, use_CUDA, args.num_steps, sgd_in_names, obs_shape, hidden_size, actor_critic, current_optimizee_step, prev_optimizee_step):
         for epoch in range(args.epochs):
-            train(model, optimizer, criterion, train_loader, val_loader, epoch, use_CUDA)
+            train(model, input_channel, optimizer, criterion, train_loader, val_loader, epoch, use_CUDA)
             loss, prec = val(model, val_loader, use_CUDA)
             torch.save(model, os.path.join(args.modeldir, 'checkpoint.pth.tar'))
             if prec > best_prec:
