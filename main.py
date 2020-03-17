@@ -52,6 +52,9 @@ def main():
     action_space = np.arange(0, 1.1, 0.1)
     sgd_in_names = ["feature", "classifier"]
     obs_name = ["loss", "step", "fc_mean", "fc_std"]
+    
+    actor_critic = Policy(coord_size, input_size=(len(obs_name),), action_space=len(action_space), hidden_size = 20, window_size = 1)
+
     agent = algo.A2C_ACKTR(
             actor_critic,
             args.value_loss_coef,
@@ -60,7 +63,6 @@ def main():
             eps=args.eps,
             alpha=args.alpha,
             max_grad_norm=args.max_grad_norm)
-    actor_critic = Policy(coord_size, input_size=(len(obs_name),), action_space=len(action_space), hidden_size = 20, window_size = 1)
     current_optimizee_step, prev_optimizee_step = 0, 0
 
     best_prec = 0
