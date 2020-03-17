@@ -84,6 +84,7 @@ def train(model, input_channel, optimizer, criterion, train_loader, val_loader, 
     losses = []
     iter_val_loader = iter(val_loader)
     meta_criterion = nn.CrossEntropyLoss(reduce = False)
+    index = 0
     for (input, label) in train_loader:
         meta_model = Model(input_channel = input_channel)
         meta_model.load_state_dict(model.state_dict())
@@ -112,7 +113,9 @@ def train(model, input_channel, optimizer, criterion, train_loader, val_loader, 
         y_g_hat = meta_model(val_input)
         l_g_meta = meta_criterion(y_g_hat, val_label).sum()
         grad_eps = torch.autograd.grad(l_g_meta, eps, only_inputs = True)[0]
-        print("Positive: {}, Negative: {}" .format(torch.sum(grad_eps > 0), torch.sum(grad_eps < 0)))
+        if index % 100 == 0:
+            print("[{}/{}] Positive: {}, Negative: {}" .format(index, len(train_loader), torch.sum(grad_eps > 0), torch.sum(grad_eps < 0)))
+        index += 1
         norm_c = torch.sum(abs(grad_eps))
 
         w = grad_eps / norm_c
