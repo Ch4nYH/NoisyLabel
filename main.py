@@ -18,6 +18,7 @@ from a2c_ppo_acktr.storage import RolloutStorage
 def main():
 
     args = get_args()
+    torch.manual_seed(args.seed)
     criterion = nn.CrossEntropyLoss()
     print(args)
     if len(args.gpu) > 0:
@@ -48,23 +49,6 @@ def main():
 
     if not os.path.exists(args.modeldir):
         os.mkdir(args.modeldir)
-
-    action_space = np.arange(0, 1.1, 0.1)
-    sgd_in_names = ["feature", "classifier"]
-    obs_name = ["loss", "step", "fc_mean", "fc_std"]
-    '''
-    actor_critic = Policy(len(sgd_in_names), input_size=(len(obs_name),), action_space=len(action_space), hidden_size = 20, window_size = 1)
-
-    agent = algo.A2C_ACKTR(
-            actor_critic,
-            args.value_loss_coef,
-            args.entropy_coef,
-            lr=args.lr_meta,
-            eps=args.eps,
-            alpha=args.alpha,
-            max_grad_norm=args.max_grad_norm)
-    current_optimizee_step, prev_optimizee_step = 0, 0
-    '''
 
     best_prec = 0
     for meta_epoch in range(2):
@@ -122,7 +106,7 @@ def train(model, input_channel, optimizer, criterion, train_loader, val_loader, 
 
         output = model(input)
         loss = (meta_criterion(output, label) * eps).sum()
-
+        print(loss)
         prediction = torch.softmax(output, 1)
 
         optimizer.zero_grad()
