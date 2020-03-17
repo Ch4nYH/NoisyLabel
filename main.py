@@ -130,8 +130,8 @@ def train(model, input_channel, optimizer, criterion, train_loader, val_loader, 
         accs.append(top1)
         losses.append(loss.detach())
 
-    acc = np.mean(accs)
-    loss = np.mean(losses)
+    acc = np.mean(np.array(accs))
+    loss = np.mean(np.array(losses))
     print("Training Epoch: {}, Accuracy: {}, Losses: {}".format(epoch, acc, loss))
     return acc, loss
 
@@ -141,9 +141,8 @@ def val(model, val_loader, use_CUDA = True):
     losses = []
     with torch.no_grad():
         for (input, label) in train_loader:
-            if use_CUDA:
-                input = input.cuda()
-                label = label.long().cuda()
+            input = to_var(input, requires_grad = False)
+            label = to_var(label, requires_grad = False).long()
 
             output = model(input)
             loss = criterion(output, label)
@@ -158,8 +157,8 @@ def val(model, val_loader, use_CUDA = True):
             accs.append(top1)
             losses.append(loss.detach())
 
-    acc = np.mean(accs)
-    loss = np.mean(losses)
+    acc = np.mean(np.array(accs))
+    loss = np.mean(np.array(losses))
     print("Validation Epoch: {}, Accuracy: {}, Losses: {}".format(epoch, acc, loss))
     return acc, loss
 
