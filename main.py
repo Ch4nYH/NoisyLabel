@@ -63,7 +63,7 @@ def main():
     current_optimizee_step, prev_optimizee_step = 0, 0
 
     best_prec = 0
-    for meta_epoch in range(1):
+    for meta_epoch in range(2):
         #model, optimizer, rollouts, current_optimizee_step, prev_optimizee_step = prepare_optimizee(args, input_channel, use_CUDA, args.num_steps, sgd_in_names, obs_shape, hidden_size, actor_critic, current_optimizee_step, prev_optimizee_step):
         for epoch in range(args.epochs):
             train(model, optimizer, criterion, train_loader, val_loader, epoch, use_CUDA)
@@ -127,7 +127,7 @@ def train(model, input_channel, optimizer, criterion, train_loader, val_loader, 
     loss = np.mean(losses)
     print("Training Epoch: {}, Accuracy: {}, Losses: {}".format(epoch, acc, loss))
     return acc, loss
-    
+
 def val(model, val_loader, use_CUDA = True):
     model.eval()
     accs = []
@@ -173,3 +173,6 @@ def prepare_optimizee(args, input_channel, use_CUDA, num_steps, sgd_in_names, ob
 
     rollouts = RolloutStorage(num_steps, obs_shape, action_shape=coord_size, hidden_size=hidden_size, num_recurrent_layers=actor_critic.net.num_recurrent_layers)
     return model, optimizer, rollouts, current_optimizee_step, prev_optimizee_step
+
+if __name__ == '__main__':
+    main()
