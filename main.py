@@ -92,7 +92,7 @@ def train(model, input_channel, optimizer, criterion, train_loader, val_loader, 
             label = label.long().cuda()
 
         
-        y_f_hat = meta_model(image)
+        y_f_hat = meta_model(input)
         prob = torch.sigmoid(y_f_hat).unsqueeze(-1)
         cost = meta_criterion(prob, label)
         eps = torch.zeros(cost.size())
@@ -101,11 +101,11 @@ def train(model, input_channel, optimizer, criterion, train_loader, val_loader, 
 
         grads = torch.autograd.grad(l_f_meta, (meta_net.params()), create_graph=True)
         try:
-            val_data, val_label = next(iter_val_loader)
+            val_input, val_label = next(iter_val_loader)
         except:
             iter_train_loader = iter(val_loader)
-            val_data, val_label = next(iter_train_loader)
-        y_g_hat = meta_model(val_data)
+            val_input, val_label = next(iter_train_loader)
+        y_g_hat = meta_model(val_input)
         val_prob = torch.sigmoid(y_g_hat).unsqueeze(-1)
         l_g_meta = meta_criterion(val_prob, val_label)
         grad_eps = torch.autograd.grad(l_g_meta, eps, only_inputs = True)[0]
