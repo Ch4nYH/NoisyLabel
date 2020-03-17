@@ -339,7 +339,7 @@ class MetaMLP(MetaModule):
         x = self.l5(x)
         return x
     
-class Model(nn.Module):
+class Model(MetaModule):
     def __init__(self, num_classes = 10, input_channel = 3):
         super(Model, self).__init__()
 
