@@ -85,7 +85,7 @@ class MetaModule(nn.Module):
                     self.set_param(mod, rest, param)
                     break
         else:
-            getattr(curr_mod, name).data = param
+            setattr(curr_mod, name, param)
             
     def detach_params(self):
         for name, param in self.named_params(self):
@@ -360,7 +360,7 @@ class Model(MetaModule):
             nn.AdaptiveAvgPool2d((1,1)),
         )
 
-        self.classifier = nn.Linear(128, num_classes)
+        self.classifier = MetaLinear(128, num_classes)
 
     def forward(self, x):
         feature = self.feature(x)
