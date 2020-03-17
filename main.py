@@ -113,7 +113,7 @@ def train(model, input_channel, optimizer, criterion, train_loader, val_loader, 
         l_g_meta = meta_criterion(y_g_hat, val_label).sum()
         grad_eps = torch.autograd.grad(l_g_meta, eps, only_inputs = True)[0]
 
-        norm_c = torch.sum(abs(w_tilde))
+        norm_c = torch.sum(abs(grad_eps))
 
         w = grad_eps / norm_c
 
