@@ -109,7 +109,8 @@ def train(model, input_channel, optimizer, criterion, train_loader, val_loader, 
         prediction = torch.softmax(output, 1)
 
         optimizer.zero_grad()
-        loss.backward()
+        if loss < 10:
+            loss.backward()
         optimizer.step()
 
         top1 = accuracy(prediction, label)
