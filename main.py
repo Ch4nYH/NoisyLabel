@@ -111,7 +111,7 @@ def train(model, input_channel, optimizer, criterion, train_loader, val_loader, 
         optimizer.zero_grad()
         if loss < 10:
             loss.backward()
-        optimizer.step()
+            optimizer.step()
 
         top1 = accuracy(prediction, label)
         accs.append(top1)
