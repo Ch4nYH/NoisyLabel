@@ -13,6 +13,7 @@ from meta_models import Model, to_var
 from a2c_ppo_acktr import algo, utils
 from a2c_ppo_acktr.models.policy import Policy
 from a2c_ppo_acktr.storage import RolloutStorage
+from pdb import set_trace as bp
 
 
 def main():
@@ -109,10 +110,11 @@ def train(model, input_channel, optimizer, criterion, train_loader, val_loader, 
         prediction = torch.softmax(output, 1)
 
         optimizer.zero_grad()
-        if loss < 10:
+        if loss < 1000:
             loss.backward()
             optimizer.step()
-
+        else:
+            bp()
         top1 = accuracy(prediction, label)
         accs.append(top1)
         losses.append(loss.detach())
