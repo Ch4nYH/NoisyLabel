@@ -343,7 +343,7 @@ class Model(MetaModule):
     def __init__(self, num_classes = 10, input_channel = 3):
         super(Model, self).__init__()
 
-        self.feature = nn.Sequential(
+        feature_layers = [
             MetaConv2d(input_channel, 128, 3, padding = 2),
             nn.LeakyReLU(negative_slope = 0.1, inplace = True),
             nn.BatchNorm2d(128),
@@ -376,8 +376,9 @@ class Model(MetaModule):
             nn.LeakyReLU(negative_slope = 0.1, inplace = True),
             nn.BatchNorm2d(128),
             nn.AdaptiveAvgPool2d((1,1)),
-        )
-
+        ]
+        self.feature = nn.Sequential(*layers)
+        
         self.classifier = MetaLinear(128, num_classes, bias = False)
 
     def forward(self, x):
