@@ -378,7 +378,7 @@ class Model(MetaModule):
             nn.AdaptiveAvgPool2d((1,1)),
         )
 
-        self.classifier = MetaLinear(128, num_classes)
+        self.classifier = MetaLinear(128, num_classes, bias = False)
 
     def forward(self, x):
         feature = self.feature(x)
