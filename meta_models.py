@@ -377,8 +377,8 @@ class Model(MetaModule):
             nn.BatchNorm2d(128),
             nn.AdaptiveAvgPool2d((1,1)),
         ]
-        self.feature = nn.Sequential(*layers)
-        
+        self.feature = nn.Sequential(*feature_layers)
+
         self.classifier = MetaLinear(128, num_classes, bias = False)
 
     def forward(self, x):
