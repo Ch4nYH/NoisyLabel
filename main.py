@@ -111,7 +111,7 @@ def train(model, input_channel, optimizer, criterion, train_loader, val_loader, 
         prediction = torch.softmax(output, 1)
 
         optimizer.zero_grad()
-        if loss < 1000:
+        if loss < 10000:
             loss.backward()
             optimizer.step()
         else:
