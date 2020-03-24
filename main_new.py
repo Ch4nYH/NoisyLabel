@@ -107,8 +107,7 @@ def train(model, input_channel, optimizer_backbone, optimizer_fc, criterion, tra
         #w = torch.clamp(-grad_eps, min = 0)
         w_backbone = -grad_eps
         norm_c = torch.sum(abs(w_backbone))
-
-        w_backbone = w _backbone/ norm_c
+        w_backbone = w_backbone / norm_c
 
         # FC backward
         grads = torch.autograd.grad(l_f_meta, (meta_model.fc.parameters()), create_graph=True)
