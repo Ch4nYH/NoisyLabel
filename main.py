@@ -14,7 +14,7 @@ from a2c_ppo_acktr import algo, utils
 from a2c_ppo_acktr.models.policy import Policy
 from a2c_ppo_acktr.storage import RolloutStorage
 from pdb import set_trace as bp
-from tensorboardx import SummaryWriter
+from tensorboardX import SummaryWriter
 
 def main():
 
