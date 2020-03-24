@@ -14,7 +14,7 @@ from a2c_ppo_acktr import algo, utils
 from a2c_ppo_acktr.models.policy import Policy
 from a2c_ppo_acktr.storage import RolloutStorage
 from pdb import set_trace as bp
-
+from tensorboardx import SummaryWriter
 
 def main():
 
@@ -50,19 +50,20 @@ def main():
 
     if not os.path.exists(args.modeldir):
         os.mkdir(args.modeldir)
+    writer = SummaryWriter(args.modeldir)
 
     best_prec = 0
     #model, optimizer, rollouts, current_optimizee_step, prev_optimizee_step = prepare_optimizee(args, input_channel, use_CUDA, args.num_steps, sgd_in_names, obs_shape, hidden_size, actor_critic, current_optimizee_step, prev_optimizee_step):
     for epoch in range(args.epochs):
-        train(model, input_channel, optimizer, criterion, train_loader, val_loader, epoch, use_CUDA)
-        loss, prec = val(model, val_loader, criterion, epoch, use_CUDA)
+        train(model, input_channel, optimizer, criterion, train_loader, val_loader, epoch, writer, use_CUDA)
+        loss, prec = val(model, val_loader, criterion, epoch, writer, use_CUDA)
         torch.save(model, os.path.join(args.modeldir, 'checkpoint.pth.tar'))
         if prec > best_prec:
             torch.save(model, os.path.join(args.modeldir, 'model_best.pth.tar'))
             best_prec = prec
 
 
-def train(model, input_channel, optimizer, criterion, train_loader, val_loader, epoch, use_CUDA = True):
+def train(model, input_channel, optimizer, criterion, train_loader, val_loader, epoch, writer, use_CUDA = True):
     model.train()
     accs = []
     losses = []
@@ -100,8 +101,7 @@ def train(model, input_channel, optimizer, criterion, train_loader, val_loader, 
         if index % 100 == 0:
             print("[{}/{}] Positive: {}, Negative: {}" .format(index, len(train_loader), torch.sum(grad_eps > 0), torch.sum(grad_eps < 0)))
         index += 1
-        #w = torch.clamp(-grad_eps, min = 0)
-        w = -grad_eps
+        w = torch.clamp(-grad_eps, min = 0)
         norm_c = torch.sum(abs(w))
 
         w = w / norm_c
@@ -122,10 +122,12 @@ def train(model, input_channel, optimizer, criterion, train_loader, val_loader, 
 
     acc = sum(accs) / len(accs)
     loss = sum(losses) / len(losses)
+    writer.add_scalar("train/acc", acc, epoch)
+    writer.add_scalar("train/loss", loss, epoch)
     print("Training Epoch: {}, Accuracy: {}, Losses: {}".format(epoch, acc, loss))
     return acc, loss
 
-def val(model, val_loader, criterion, epoch, use_CUDA = True):
+def val(model, val_loader, criterion, epoch, writer, use_CUDA = True):
     model.eval()
     accs = []
     losses = []
@@ -145,6 +147,8 @@ def val(model, val_loader, criterion, epoch, use_CUDA = True):
 
     acc = sum(accs) / len(accs)
     loss = sum(losses) / len(losses)
+    writer.add_scalar("train/acc", acc, epoch)
+    writer.add_scalar("train/loss", loss, epoch)
     print("Validation Epoch: {}, Accuracy: {}, Losses: {}".format(epoch, acc, loss))
     return acc, loss
 
