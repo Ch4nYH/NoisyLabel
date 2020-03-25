@@ -50,7 +50,7 @@ def main():
         feature_parameters.extend(list(i.parameters()))
 
     optimizer_backbone = torch.optim.Adam(feature_parameters, lr = args.lr)
-    optimizer_fc = torch.optim.Adam(model.fc.parameters(), lr = args.lr)
+    optimizer_fc = torch.optim.Adam(model.classifier.parameters(), lr = args.lr)
 
     scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer,
         [80], gamma=0.5, last_epoch=-1)
