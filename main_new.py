@@ -80,7 +80,6 @@ def train(model, input_channel, optimizer_backbone, optimizer_fc, criterion, tra
     for (input, label) in train_loader:
         meta_model = Model(input_channel = input_channel)
         meta_model.load_state_dict(model.state_dict())
-        meta_model.classifier.requires_grad
         if use_CUDA:
             meta_model = meta_model.cuda()
 
@@ -96,8 +95,10 @@ def train(model, input_channel, optimizer_backbone, optimizer_fc, criterion, tra
         meta_feature_parameters = []
         for i in meta_model.feature:
             meta_feature_parameters.extend(list(i.parameters()))
-        grads = torch.autograd.grad(l_f_meta, (meta_feature_parameters), create_graph=True, retain_graph = True)
-        meta_model.feature.update_params(0.001, source_params = grads)
+        grads_feature = torch.autograd.grad(l_f_meta, (meta_feature_parameters), create_graph=True, retain_graph = True)
+        grads_fc = torch.autograd.grad(l_f_meta, (meta_model.classifier.parameters()), create_graph=True)
+
+        meta_model.feature.update_params(0.001, source_params = grads_feature)
         try:
             val_input, val_label = next(iter_val_loader)
         except:
@@ -118,14 +119,7 @@ def train(model, input_channel, optimizer_backbone, optimizer_fc, criterion, tra
         w_backbone = w_backbone / norm_c
 
         # FC backward
-        meta_model.load_state_dict(model.state_dict())
-        y_f_hat = meta_model(input)
-        cost = meta_criterion(y_f_hat, label)
-        eps = to_var(torch.zeros(cost.size()))
-        l_f_meta = (cost * eps).sum()
-        meta_model.zero_grad()
-        grads = torch.autograd.grad(l_f_meta, (meta_model.classifier.parameters()), create_graph=True)
-        meta_model.classifier.update_params(0.001, source_params = grads)
+        meta_model.classifier.update_params(0.001, source_params = grads_fc)
         try:
             val_input, val_label = next(iter_val_loader)
         except:
