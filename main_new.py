@@ -110,7 +110,7 @@ def train(model, input_channel, optimizer_backbone, optimizer_fc, criterion, tra
 
         y_g_hat = meta_model(val_input)
         l_g_meta = meta_criterion(y_g_hat, val_label).sum()
-        grad_eps = torch.autograd.grad(l_g_meta, eps, only_inputs = True)[0]
+        grad_eps = torch.autograd.grad(l_g_meta, eps, only_inputs = True, retain_graph = True)[0]
         if index % 100 == 0:
             print("[{}/{}] BB Positive: {}, Negative: {}" .format(index, len(train_loader), torch.sum(grad_eps > 0), torch.sum(grad_eps < 0)))
         #w = torch.clamp(-grad_eps, min = 0)
@@ -119,19 +119,12 @@ def train(model, input_channel, optimizer_backbone, optimizer_fc, criterion, tra
         w_backbone = w_backbone / norm_c
 
         # FC backward
+        meta_model.load_state_dict(model.state_dict())
         meta_model.classifier.update_params(0.001, source_params = grads_fc)
-        try:
-            val_input, val_label = next(iter_val_loader)
-        except:
-            iter_val_loader = iter(val_loader)
-            val_input, val_label = next(iter_val_loader)
-
-        val_input = to_var(val_input, requires_grad = False)
-        val_label = to_var(val_label, requires_grad = False).long()
 
         y_g_hat = meta_model(val_input)
         l_g_meta = meta_criterion(y_g_hat, val_label).sum()
-        grad_eps = torch.autograd.grad(l_g_meta, eps, only_inputs = True)[0]
+        grad_eps = torch.autograd.grad(l_g_meta, eps, only_inputs = True, retain_graph = True)[0]
         if index % 100 == 0:
             print("[{}/{}] FC Positive: {}, Negative: {}" .format(index, len(train_loader), torch.sum(grad_eps > 0), torch.sum(grad_eps < 0)))
         index += 1
