@@ -73,7 +73,8 @@ def main():
 def train(model, input_channel, optimizer_backbone, optimizer_fc, criterion, train_loader, val_loader, epoch, writer, use_CUDA = True):
     model.train()
     accs = []
-    losses = []
+    fc_losses = []
+    backbone_losses = []
     iter_val_loader = iter(val_loader)
     meta_criterion = nn.CrossEntropyLoss(reduce = False)
     index = 0
@@ -158,13 +159,16 @@ def train(model, input_channel, optimizer_backbone, optimizer_fc, criterion, tra
 
         top1 = accuracy(prediction, label)
         accs.append(top1)
-        losses.append(loss.detach())
+        fc_losses.append(fc_loss.detach())
+        backbone_losses.append(backbone_loss.detach())
 
     acc = sum(accs) / len(accs)
-    loss = sum(losses) / len(losses)
+    fc_loss = sum(fc_losses) / len(fc_losses)
+    backbone_loss = sum(backbone_losses) / len(backbone_losses)
     writer.add_scalar("train/acc", acc, epoch)
-    writer.add_scalar("train/loss", loss, epoch)
-    print("Training Epoch: {}, Accuracy: {}, Losses: {}".format(epoch, acc, loss))
+    writer.add_scalar("train/fc_loss", fc_loss, epoch)
+    writer.add_scalar("train/backbone_loss", backbone_loss, epoch)
+    print("Training Epoch: {}, Accuracy: {}, FC Loss: {}, Backbone Loss: {}".format(epoch, acc, fc_loss, backbone_loss))
     return acc, loss
 
 def val(model, val_loader, criterion, epoch, writer, use_CUDA = True):
@@ -187,8 +191,8 @@ def val(model, val_loader, criterion, epoch, writer, use_CUDA = True):
 
     acc = sum(accs) / len(accs)
     loss = sum(losses) / len(losses)
-    writer.add_scalar("train/acc", acc, epoch)
-    writer.add_scalar("train/loss", loss, epoch)
+    writer.add_scalar("val/acc", acc, epoch)
+    writer.add_scalar("val/loss", loss, epoch)
     print("Validation Epoch: {}, Accuracy: {}, Losses: {}".format(epoch, acc, loss))
     return acc, loss
 
