@@ -117,7 +117,7 @@ def train(model, input_channel, optimizer_backbone, optimizer_fc, criterion, tra
         w_backbone = w_backbone / norm_c
 
         # FC backward
-        grads = torch.autograd.grad(l_f_meta, (meta_model.fc.parameters()), create_graph=True)
+        grads = torch.autograd.grad(l_f_meta, (meta_model.classifier.parameters()), create_graph=True)
         meta_model.update_params(0.001, source_params = grads)
         try:
             val_input, val_label = next(iter_val_loader)
