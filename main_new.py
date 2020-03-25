@@ -52,8 +52,8 @@ def main():
     optimizer_backbone = torch.optim.Adam(feature_parameters, lr = args.lr)
     optimizer_fc = torch.optim.Adam(model.classifier.parameters(), lr = args.lr)
 
-    scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer,
-        [80], gamma=0.5, last_epoch=-1)
+    #scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer,
+    #    [80], gamma=0.5, last_epoch=-1)
 
     if not os.path.exists(args.modeldir):
         os.mkdir(args.modeldir)
