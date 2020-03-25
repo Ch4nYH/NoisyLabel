@@ -96,7 +96,7 @@ def train(model, input_channel, optimizer_backbone, optimizer_fc, criterion, tra
         for i in meta_model.feature:
             meta_feature_parameters.extend(list(i.parameters()))
         grads = torch.autograd.grad(l_f_meta, (meta_feature_parameters), create_graph=True)
-        meta_model.update_params(0.001, source_params = grads)
+        meta_model.feature.update_params(0.001, source_params = grads)
         try:
             val_input, val_label = next(iter_val_loader)
         except:
@@ -118,7 +118,7 @@ def train(model, input_channel, optimizer_backbone, optimizer_fc, criterion, tra
 
         # FC backward
         grads = torch.autograd.grad(l_f_meta, (meta_model.classifier.parameters()), create_graph=True)
-        meta_model.update_params(0.001, source_params = grads)
+        meta_model.classifier.update_params(0.001, source_params = grads)
         try:
             val_input, val_label = next(iter_val_loader)
         except:
