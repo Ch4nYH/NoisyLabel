@@ -80,6 +80,7 @@ def train(model, input_channel, optimizer_backbone, optimizer_fc, criterion, tra
     for (input, label) in train_loader:
         meta_model = Model(input_channel = input_channel)
         meta_model.load_state_dict(model.state_dict())
+        meta_model.classifier.requires_grad
         if use_CUDA:
             meta_model = meta_model.cuda()
 
@@ -118,8 +119,6 @@ def train(model, input_channel, optimizer_backbone, optimizer_fc, criterion, tra
 
         # FC backward
         meta_model.load_state_dict(model.state_dict())
-        input = to_var(input, requires_grad = False)
-        label = to_var(label, requires_grad = False).long()
         y_f_hat = meta_model(input)
         cost = meta_criterion(y_f_hat, label)
         eps = to_var(torch.zeros(cost.size()))
