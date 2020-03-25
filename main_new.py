@@ -117,6 +117,14 @@ def train(model, input_channel, optimizer_backbone, optimizer_fc, criterion, tra
         w_backbone = w_backbone / norm_c
 
         # FC backward
+        meta_model.load_state_dict(model.state_dict())
+        input = to_var(input, requires_grad = False)
+        label = to_var(label, requires_grad = False).long()
+        y_f_hat = meta_model(input)
+        cost = meta_criterion(y_f_hat, label)
+        eps = to_var(torch.zeros(cost.size()))
+        l_f_meta = (cost * eps).sum()
+        meta_model.zero_grad()
         grads = torch.autograd.grad(l_f_meta, (meta_model.classifier.parameters()), create_graph=True)
         meta_model.classifier.update_params(0.001, source_params = grads)
         try:
