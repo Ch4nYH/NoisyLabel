@@ -169,7 +169,7 @@ def train(model, input_channel, optimizer_backbone, optimizer_fc, criterion, tra
     writer.add_scalar("train/fc_loss", fc_loss, epoch)
     writer.add_scalar("train/backbone_loss", backbone_loss, epoch)
     print("Training Epoch: {}, Accuracy: {}, FC Loss: {}, Backbone Loss: {}".format(epoch, acc, fc_loss, backbone_loss))
-    return acc, loss
+    return acc, (fc_loss + backbone_loss) / 2
 
 def val(model, val_loader, criterion, epoch, writer, use_CUDA = True):
     model.eval()
