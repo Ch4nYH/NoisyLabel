@@ -47,7 +47,7 @@ def main():
 
     feature_parameters = []
     for i in model.feature:
-        feature_parameters.extends(list(i.parameters()))
+        feature_parameters.extend(list(i.parameters()))
 
     optimizer_backbone = torch.optim.Adam(feature_parameters, lr = args.lr)
     optimizer_fc = torch.optim.Adam(model.fc.parameters(), lr = args.lr)
