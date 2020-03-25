@@ -45,7 +45,11 @@ def main():
 
     model = Model(input_channel = input_channel)
 
-    optimizer_backbone = torch.optim.Adam(model.feature.parameters(), lr = args.lr)
+    feature_parameters = []
+    for i in model.feature:
+        feature_parameters.extends(list(i.parameters()))
+
+    optimizer_backbone = torch.optim.Adam(feature_parameters, lr = args.lr)
     optimizer_fc = torch.optim.Adam(model.fc.parameters(), lr = args.lr)
 
     scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer,
@@ -88,7 +92,10 @@ def train(model, input_channel, optimizer_backbone, optimizer_fc, criterion, tra
         meta_model.zero_grad()
 
         # Backbone backward
-        grads = torch.autograd.grad(l_f_meta, (meta_model.feature.parameters()), create_graph=True)
+        meta_feature_parameters = []
+        for i in meta_model.feature:
+            meta_feature_parameters.extends(list(i.parameters()))
+        grads = torch.autograd.grad(l_f_meta, (meta_feature_parameters), create_graph=True)
         meta_model.update_params(0.001, source_params = grads)
         try:
             val_input, val_label = next(iter_val_loader)
