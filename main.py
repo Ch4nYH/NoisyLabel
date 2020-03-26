@@ -147,8 +147,8 @@ def val(model, val_loader, criterion, epoch, writer, use_CUDA = True):
 
     acc = sum(accs) / len(accs)
     loss = sum(losses) / len(losses)
-    writer.add_scalar("train/acc", acc, epoch)
-    writer.add_scalar("train/loss", loss, epoch)
+    writer.add_scalar("val/acc", acc, epoch)
+    writer.add_scalar("val/loss", loss, epoch)
     print("Validation Epoch: {}, Accuracy: {}, Losses: {}".format(epoch, acc, loss))
     return acc, loss
 
