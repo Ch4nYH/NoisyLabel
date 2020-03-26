@@ -45,7 +45,7 @@ def main():
 
     model = Model(input_channel = input_channel)
     optimizer = torch.optim.Adam(model.parameters(), lr = args.lr)
-    optimizer_fc = torch.optimizer.Adam(model.classifier.parameters(), lr = args.lr)
+    optimizer_fc = torch.optim.Adam(model.classifier.parameters(), lr = args.lr)
     scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer,
         [80], gamma=0.5, last_epoch=-1)
 
