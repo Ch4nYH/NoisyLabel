@@ -26,7 +26,7 @@ def make_random_labels(labels, seed = 1, num_classes = 10):
     for i in range(num_classes):
         np.random.seed(seed + i)
         all_length = np.sum(labels == i)
-        noisy_length = int(0.5 * all_length)
+        noisy_length = int(4.0 / 9 * all_length)
         new_label = [i] * (all_length - noisy_length) + list(np.random.randint(0, 9, size = noisy_length))
         np.random.seed(seed + i)
         noisy_labels[labels == i] = np.random.permutation(np.array(new_label))
