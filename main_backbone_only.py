@@ -134,8 +134,8 @@ def train(model, input_channel, optimizer, optimizer_backbone, criterion, train_
     loss = sum(losses) / len(losses)
     writer.add_scalar("train/acc", acc, epoch)
     writer.add_scalar("train/loss", loss, epoch)
-    writer.add_scalar("train/loss_fc", loss_fc, epoch)
-    print("Training Epoch: {}, Accuracy: {}, Losses: {}, FC Losses: {}".format(epoch, acc, loss, loss_fc))
+    writer.add_scalar("train/loss_backbone", loss_backbone, epoch)
+    print("Training Epoch: {}, Accuracy: {}, Losses: {}, FC Losses: {}".format(epoch, acc, loss, loss_backbone))
     return acc, loss
 
 def val(model, val_loader, criterion, epoch, writer, use_CUDA = True):
