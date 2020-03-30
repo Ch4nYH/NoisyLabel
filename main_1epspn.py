@@ -46,7 +46,6 @@ def main():
 
     model = Model(input_channel = input_channel)
     optimizer = torch.optim.Adam(model.parameters(), lr = args.lr)
-    optimizer_backbone = torch.optim.Adam(model.feature.parameters(), lr = args.lr)
     scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer,
         [80], gamma=0.5, last_epoch=-1)
 
@@ -57,7 +56,7 @@ def main():
     best_prec = 0
     #model, optimizer, rollouts, current_optimizee_step, prev_optimizee_step = prepare_optimizee(args, input_channel, use_CUDA, args.num_steps, sgd_in_names, obs_shape, hidden_size, actor_critic, current_optimizee_step, prev_optimizee_step):
     for epoch in range(args.epochs):
-        train(model, input_channel, optimizer, optimizer_backbone, criterion, train_loader, val_loader, epoch, writer, use_CUDA)
+        train(model, input_channel, optimizer, criterion, train_loader, val_loader, epoch, writer, use_CUDA)
         loss, prec = val(model, val_loader, criterion, epoch, writer, use_CUDA)
         torch.save(model, os.path.join(args.modeldir, 'checkpoint.pth.tar'))
         if prec > best_prec:
@@ -65,7 +64,7 @@ def main():
             best_prec = prec
 
 
-def train(model, input_channel, optimizer, optimizer_backbone, criterion, train_loader, val_loader, epoch, writer, use_CUDA = True):
+def train(model, input_channel, optimizer, criterion, train_loader, val_loader, epoch, writer, use_CUDA = True):
     model.train()
     accs = []
     losses = []
@@ -73,7 +72,6 @@ def train(model, input_channel, optimizer, optimizer_backbone, criterion, train_
     meta_criterion = nn.CrossEntropyLoss(reduce = False)
     index = 0
     w1_all = []
-    w2_all = []
     for (input, label) in train_loader:
         meta_model = Model(input_channel = input_channel)
         meta_model.load_state_dict(model.state_dict())
@@ -105,33 +103,22 @@ def train(model, input_channel, optimizer, optimizer_backbone, criterion, train_
         if index % 100 == 0:
             print("[{}/{}] Positive: {}, Negative: {}" .format(index, len(train_loader), torch.sum(grad_eps > 0), torch.sum(grad_eps < 0)))
         index += 1
-        w = torch.clamp(-grad_eps, min = 0)
+        w = -grad_eps
         norm_c = torch.sum(abs(w))
 
         w = w / norm_c
-        w1 = w * 1.0
-        w1[w1 < 0] = 0
-
-        w2 = w * 1.0
-        w2[w2 > 0] = 0
-
-        w1_all.append(w1.detach().view(-1))
-        w2_all.append(w2.detach().view(-1))
-
         output = model(input)
-        loss = (meta_criterion(output, label) * w1).sum()
+        loss = (meta_criterion(output, label) * w).sum()
         #print(loss)
         prediction = torch.softmax(output, 1)
 
         optimizer.zero_grad()
-        optimizer_backbone.zero_grad()
-        loss.backward(retain_graph = True)
-        optimizer.step()
-
-        loss_backbone = (meta_criterion(output, label) * w2).sum()
-        loss_backbone.backward()
-        optimizer_backbone.step()
-
+        if loss < 10000:
+            loss.backward()
+            optimizer.step()
+        else:
+            bp()
+        w1_all.append(w.detach().view(-1))
         top1 = accuracy(prediction, label)
         accs.append(top1)
         losses.append(loss.detach())
@@ -139,13 +126,10 @@ def train(model, input_channel, optimizer, optimizer_backbone, criterion, train_
     acc = sum(accs) / len(accs)
     loss = sum(losses) / len(losses)
     w1_all = torch.cat(w1_all)
-    w2_all = torch.cat(w2_all)
     writer.add_scalar("train/acc", acc, epoch)
     writer.add_scalar("train/loss", loss, epoch)
-    writer.add_scalar("train/loss_backbone", loss_backbone, epoch)
     writer.add_histogram("train/w1", w1_all, epoch)
-    writer.add_histogram("train/w2", w2_all, epoch)
-    print("Training Epoch: {}, Accuracy: {}, Losses: {}, FC Losses: {}".format(epoch, acc, loss, loss_backbone))
+    print("Training Epoch: {}, Accuracy: {}, Losses: {}".format(epoch, acc, loss))
     return acc, loss
 
 def val(model, val_loader, criterion, epoch, writer, use_CUDA = True):

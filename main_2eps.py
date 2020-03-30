@@ -6,7 +6,7 @@ import torch.nn as nn
 import torch.backends.cudnn as cudnn
 from torch.utils.data import DataLoader
 
-from datasets import MNISTDataset
+from datasets import MNISTDataset, CIFARDataset
 from utils import get_args, accuracy
 from meta_models import Model, to_var
 
@@ -33,6 +33,10 @@ def main():
     if args.dataset == 'mnist':
         train_dataset = MNISTDataset(split = 'train', seed = args.seed)
         val_dataset = MNISTDataset(split = 'val', seed = args.seed)
+        input_channel = 1
+    elif args.dataset == 'cifar':
+        train_dataset = CIFARDataset(split = 'train', seed = args.seed)
+        val_dataset = CIFARDataset(split = 'val', seed = args.seed)
         input_channel = 1
     else:
         raise NotImplementedError
@@ -78,6 +82,8 @@ def train(model, input_channel, optimizer_backbone, optimizer_fc, criterion, tra
     iter_val_loader = iter(val_loader)
     meta_criterion = nn.CrossEntropyLoss(reduce = False)
     index = 0
+    w1_all = []
+    w2_all = []
     for (input, label) in train_loader:
         meta_model = Model(input_channel = input_channel)
         meta_model.load_state_dict(model.state_dict())
@@ -156,7 +162,8 @@ def train(model, input_channel, optimizer_backbone, optimizer_fc, criterion, tra
         else:
             bp()
 
-
+        w1_all.append(w_backbone.detach().view(-1))
+        w2_all.append(w_fc.detach().view(-1))
         top1 = accuracy(prediction, label)
         accs.append(top1)
         fc_losses.append(fc_loss.detach())
@@ -165,9 +172,13 @@ def train(model, input_channel, optimizer_backbone, optimizer_fc, criterion, tra
     acc = sum(accs) / len(accs)
     fc_loss = sum(fc_losses) / len(fc_losses)
     backbone_loss = sum(backbone_losses) / len(backbone_losses)
+    w1_all = torch.cat(w1_all)
+    w2_all = torch.cat(w2_all)
     writer.add_scalar("train/acc", acc, epoch)
     writer.add_scalar("train/fc_loss", fc_loss, epoch)
     writer.add_scalar("train/backbone_loss", backbone_loss, epoch)
+    writer.add_histogram("train/w1", w1_all, epoch)
+    writer.add_histogram("train/w2", w2_all, epoch)
     print("Training Epoch: {}, Accuracy: {}, FC Loss: {}, Backbone Loss: {}".format(epoch, acc, fc_loss, backbone_loss))
     return acc, (fc_loss + backbone_loss) / 2
 

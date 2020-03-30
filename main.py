@@ -6,13 +6,10 @@ import torch.nn as nn
 import torch.backends.cudnn as cudnn
 from torch.utils.data import DataLoader
 
-from datasets import MNISTDataset
+from datasets import MNISTDataset, CIFARDataset
 from utils import get_args, accuracy
 from meta_models import Model, to_var
 
-from a2c_ppo_acktr import algo, utils
-from a2c_ppo_acktr.models.policy import Policy
-from a2c_ppo_acktr.storage import RolloutStorage
 from pdb import set_trace as bp
 from tensorboardX import SummaryWriter
 
@@ -33,6 +30,10 @@ def main():
     if args.dataset == 'mnist':
         train_dataset = MNISTDataset(split = 'train', seed = args.seed)
         val_dataset = MNISTDataset(split = 'val', seed = args.seed)
+        input_channel = 1
+    elif args.dataset == 'cifar':
+        train_dataset = CIFARDataset(split = 'train', seed = args.seed)
+        val_dataset = CIFARDataset(split = 'val', seed = args.seed)
         input_channel = 1
     else:
         raise NotImplementedError
@@ -151,24 +152,6 @@ def val(model, val_loader, criterion, epoch, writer, use_CUDA = True):
     writer.add_scalar("val/loss", loss, epoch)
     print("Validation Epoch: {}, Accuracy: {}, Losses: {}".format(epoch, acc, loss))
     return acc, loss
-
-def prepare_optimizee(args, input_channel, use_CUDA, num_steps, sgd_in_names, obs_shape, hidden_size, actor_critic, current_optimizee_step, prev_optimizee_step):
-    coord_size = len(sgd_in_names)
-    prev_optimizee_step += current_optimizee_step
-    current_optimizee_step = 0
-
-    model = Model(input_channel = input_channel)
-
-    sgd_in = [
-        {'params': model[name].parameters(), 'lr': args.lr}
-        for name in sgd_in_names
-    ]
-
-    optimizer = torch.optim.SGD(sgd_in, lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay)
-    model = model.cuda()
-
-    rollouts = RolloutStorage(num_steps, obs_shape, action_shape=coord_size, hidden_size=hidden_size, num_recurrent_layers=actor_critic.net.num_recurrent_layers)
-    return model, optimizer, rollouts, current_optimizee_step, prev_optimizee_step
 
 if __name__ == '__main__':
     main()
