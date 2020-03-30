@@ -37,7 +37,7 @@ def main():
     elif args.dataset == 'cifar':
         train_dataset = CIFARDataset(split = 'train', seed = args.seed)
         val_dataset = CIFARDataset(split = 'val', seed = args.seed)
-        input_channel = 1
+        input_channel = 3
     else:
         raise NotImplementedError
 
