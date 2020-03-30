@@ -32,8 +32,20 @@ def main():
         val_dataset = MNISTDataset(split = 'val', seed = args.seed)
         input_channel = 1
     elif args.dataset == 'cifar':
-        train_dataset = CIFARDataset(split = 'train', seed = args.seed)
-        val_dataset = CIFARDataset(split = 'val', seed = args.seed)
+        data_transforms = {
+            'train': transforms.Compose([
+                transforms.ToPILImage(),
+                transforms.ToTensor(),
+                transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+            ]),
+            'val': transforms.Compose([
+                transforms.ToPILImage(),
+                transforms.ToTensor(),
+                transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+            ])
+        } 
+        train_dataset = CIFARDataset(split = 'train', seed = args.seed, transform = data_transforms['train'])
+        val_dataset = CIFARDataset(split = 'val', seed = args.seed, transform = data_transforms['val'])
         input_channel = 3
     else:
         raise NotImplementedError
