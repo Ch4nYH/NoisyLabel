@@ -4,26 +4,31 @@ def get_args():
     parser = argparse.ArgumentParser(description='RL')
     ##### 
     parser.add_argument(
+        '-l',
         '--lr',
         type=float,
         default = 1e-3
     )
     parser.add_argument(
+        '-d',
         '--dataset',
         type=str,
         default = 'mnist'
     )
     parser.add_argument(
+        '-g',
         '--gpu',
         type=str,
         default = ""
     )
     parser.add_argument(
+        '-m', 
         '--modeldir',
         type=str,
         default = "model"
     )
     parser.add_argument(
+        '-b',
         '--batch-size',
         type=int,
         default = 1000
@@ -35,12 +40,14 @@ def get_args():
         default = 8
     )
     parser.add_argument(
+        '-s',
         '--seed', type=int, default=1, help='random seed (default: 1)')
 
     parser.add_argument(
+        '-e',
         '--epochs',
         type=int,
-        default = 200
+        default = 100
     )
     args = parser.parse_args()
     return args
