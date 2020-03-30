@@ -12,6 +12,7 @@ from meta_models import Model, to_var
 
 from pdb import set_trace as bp
 from tensorboardX import SummaryWriter
+from torchvision import transforms
 
 def main():
 

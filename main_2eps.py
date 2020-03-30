@@ -15,6 +15,7 @@ from a2c_ppo_acktr.models.policy import Policy
 from a2c_ppo_acktr.storage import RolloutStorage
 from pdb import set_trace as bp
 from tensorboardX import SummaryWriter
+from torchvision import transforms
 
 def main():
 
