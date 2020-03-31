@@ -10,9 +10,6 @@ from datasets import MNISTDataset, CIFARDataset
 from utils import get_args, accuracy
 from meta_models import Model, to_var
 
-from a2c_ppo_acktr import algo, utils
-from a2c_ppo_acktr.models.policy import Policy
-from a2c_ppo_acktr.storage import RolloutStorage
 from pdb import set_trace as bp
 from tensorboardX import SummaryWriter
 from torchvision import transforms
