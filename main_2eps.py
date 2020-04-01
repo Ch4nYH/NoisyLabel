@@ -45,8 +45,8 @@ def main():
                 transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
             ])
         } 
-        train_dataset = CIFARDataset(split = 'train', seed = args.seed, transform = data_transforms['train'])
-        val_dataset = CIFARDataset(split = 'val', seed = args.seed, transform = data_transforms['val'])
+        train_dataset = CIFARDataset(split = 'train', seed = args.seed, transform = data_transforms['train'], percent = args.percent)
+        val_dataset = CIFARDataset(split = 'val', seed = args.seed, transform = data_transforms['val'], percent = args.percent)
         input_channel = 3
     else:
         raise NotImplementedError
@@ -185,8 +185,8 @@ def train(model, input_channel, optimizer_backbone, optimizer_fc, criterion, tra
     w1_all = torch.cat(w1_all)
     w2_all = torch.cat(w2_all)
     writer.add_scalar("train/acc", acc, epoch)
-    writer.add_scalar("train/fc_loss", fc_loss, epoch)
-    writer.add_scalar("train/backbone_loss", backbone_loss, epoch)
+    writer.add_scalar("train/loss_fc", fc_loss, epoch)
+    writer.add_scalar("train/loss_backbone", backbone_loss, epoch)
     writer.add_histogram("train/w1", w1_all, epoch)
     writer.add_histogram("train/w2", w2_all, epoch)
     print("Training Epoch: {}, Accuracy: {}, FC Loss: {}, Backbone Loss: {}".format(epoch, acc, fc_loss, backbone_loss))

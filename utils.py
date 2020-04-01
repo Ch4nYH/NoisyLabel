@@ -49,6 +49,14 @@ def get_args():
         type=int,
         default = 100
     )
+
+    parser.add_argument(
+        '-p',
+        '--percent',
+        type=float,
+        default = 0.5
+    )
+
     args = parser.parse_args()
     return args
 

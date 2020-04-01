@@ -45,14 +45,14 @@ def get_cifar():
     x_te, y_te = _load_datafile(osp.join('cifar', eval_filename))
     return (x_tr, y_tr), (x_te, y_te)
 
-def make_50_symmetric_random_labels(labels, seed = 1, num_classes = 10):
+def make_symmetric_random_labels(labels, seed = 1, num_classes = 10, percent = 0.5):
 
     noisy_labels = np.zeros_like(labels)
 
     for i in range(num_classes):
         np.random.seed(seed + i)
         all_length = np.sum(labels == i)
-        noisy_length = int(5.0 / 9 * all_length)
+        noisy_length = int(num_classes * percent / (num_classes - 1) * all_length)
         new_label = [i] * (all_length - noisy_length) + list(np.random.randint(0, 9, size = noisy_length))
         np.random.seed(seed + i)
         noisy_labels[labels == i] = np.random.permutation(np.array(new_label))
@@ -86,7 +86,7 @@ class MNISTDataset(BaseDataset):
         self.transform = transform
 
         num_classes = len(set(list(self.y_tr)))      
-        noisy_tr = make_50_symmetric_random_labels(self.y_tr, num_classes = num_classes, seed = seed)
+        noisy_tr = make_symmetric_random_labels(self.y_tr, num_classes = num_classes, seed = seed)
 
         if (split == 'train'):
             self.x = self.x_tr
@@ -96,14 +96,14 @@ class MNISTDataset(BaseDataset):
             self.y = self.y_te
 
 class CIFARDataset(BaseDataset):
-    def __init__(self, split = 'train', seed = 1, transform = None):
+    def __init__(self, split = 'train', seed = 1, transform = None, percent = 0.5):
         super(BaseDataset, self).__init__()
 
         (self.x_tr, self.y_tr), (self.x_te, self.y_te) = get_cifar() 
         self.transform = transform
 
         num_classes = len(set(list(self.y_tr)))      
-        noisy_tr = make_50_symmetric_random_labels(self.y_tr, num_classes = num_classes, seed = seed)
+        noisy_tr = make_symmetric_random_labels(self.y_tr, num_classes = num_classes, seed = seed, percent = percent)
 
         if (split == 'train'):
             self.x = self.x_tr
