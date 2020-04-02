@@ -55,13 +55,18 @@ def main():
     train_loader = DataLoader(train_dataset, batch_size = args.batch_size, num_workers = args.num_workers)
     val_loader = DataLoader(val_dataset, batch_size = args.batch_size, num_workers = args.num_workers)
 
-    iter_train_loader = iter(train_loader)
-    iter_val_loader = iter(val_loader)
-
     model = Model(input_channel = input_channel)
-    optimizer = torch.optim.Adam(model.parameters(), lr = args.lr)
-    scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer,
-        [80], gamma=0.5, last_epoch=-1)
+    optimizers = []
+    for c in args.components:
+        if c == 'all':
+            optimizer = torch.optim.Adam(model.parameters(), lr = args.lr)
+        elif c == 'fc':
+            optimizer = torch.optim.Adam(model.classifier.parameters(), lr = args.lr)
+        elif c == 'backbone':
+            optimizer = torch.optim.Adam(model.feature.parameters(), lr = args.lr)
+        optimizers.append(optimizer)
+        
+    scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, [80], gamma=0.5, last_epoch=-1)
 
     if not os.path.exists(args.modeldir):
         os.mkdir(args.modeldir)
@@ -70,7 +75,7 @@ def main():
     best_prec = 0
     #model, optimizer, rollouts, current_optimizee_step, prev_optimizee_step = prepare_optimizee(args, input_channel, use_CUDA, args.num_steps, sgd_in_names, obs_shape, hidden_size, actor_critic, current_optimizee_step, prev_optimizee_step):
     for epoch in range(args.epochs):
-        train(model, input_channel, optimizer, criterion, train_loader, val_loader, epoch, writer, use_CUDA)
+        train(model, input_channel, optimizers, criterion, args.components, train_loader, val_loader, epoch, writer, use_CUDA, clamp = args.clamp)
         loss, prec = val(model, val_loader, criterion, epoch, writer, use_CUDA)
         torch.save(model, os.path.join(args.modeldir, 'checkpoint.pth.tar'))
         if prec > best_prec:
@@ -78,13 +83,17 @@ def main():
             best_prec = prec
 
 
-def train(model, input_channel, optimizer, criterion, train_loader, val_loader, epoch, writer, use_CUDA = True):
+def train(model, input_channel, optimizers, criterion, components, train_loader, val_loader, epoch, writer, use_CUDA = True, clamp = False):
     model.train()
     accs = []
     losses = []
+    losses_2 = []
     iter_val_loader = iter(val_loader)
     meta_criterion = nn.CrossEntropyLoss(reduce = False)
     index = 0
+    w2 = None
+    w1_all = []
+    w2_all = []
     for (input, label) in train_loader:
         meta_model = Model(input_channel = input_channel)
         meta_model.load_state_dict(model.state_dict())
@@ -93,14 +102,6 @@ def train(model, input_channel, optimizer, criterion, train_loader, val_loader, 
 
         input = to_var(input, requires_grad = False)
         label = to_var(label, requires_grad = False).long()
-        y_f_hat = meta_model(input)
-        cost = meta_criterion(y_f_hat, label)
-        eps = to_var(torch.zeros(cost.size()))
-        l_f_meta = (cost * eps).sum()
-        meta_model.zero_grad()
-
-        grads = torch.autograd.grad(l_f_meta, (meta_model.parameters()), create_graph=True)
-        meta_model.update_params(0.001, source_params = grads)
         try:
             val_input, val_label = next(iter_val_loader)
         except:
@@ -109,36 +110,94 @@ def train(model, input_channel, optimizer, criterion, train_loader, val_loader, 
 
         val_input = to_var(val_input, requires_grad = False)
         val_label = to_var(val_label, requires_grad = False).long()
+        
+        y_f_hat = meta_model(input)
+        cost = meta_criterion(y_f_hat, label)
+        eps = to_var(torch.zeros(cost.size()))
+        l_f_meta = (cost * eps).sum()
+        meta_model.zero_grad()
+        if 'all' in components:
+            grads = torch.autograd.grad(l_f_meta, (meta_model.parameters()), create_graph=True)
+            meta_model.update_params(0.001, source_params = grads)     
 
-        y_g_hat = meta_model(val_input)
-        l_g_meta = meta_criterion(y_g_hat, val_label).sum()
-        grad_eps = torch.autograd.grad(l_g_meta, eps, only_inputs = True)[0]
-        if index % 100 == 0:
-            print("[{}/{}] Positive: {}, Negative: {}" .format(index, len(train_loader), torch.sum(grad_eps > 0), torch.sum(grad_eps < 0)))
+            y_g_hat = meta_model(val_input)
+            l_g_meta = meta_criterion(y_g_hat, val_label).sum()
+            grad_eps = torch.autograd.grad(l_g_meta, eps, only_inputs = True)[0]
+            if clamp:
+                w1 = torch.clamp(-grad_eps, min = 0)
+            else:
+                w1 = -grad_eps
+            
+            
+            w1 = torch.clamp(-grad_eps, min = 0)
+            norm_c = torch.sum(abs(w1))
+            w1 = w1 / norm_c
+            if ('fc' in components) or ('backbone' in components):
+                w2 = copy.deepcopy(w1)
+                w2[w2 > 0] = 0
+            
+            w1_all.append(w1.detach().view(-1))
+            if w2 is not None:
+                w2_all.append(w2.detach().view(-1))
+        
+        else:
+            grads_feature = torch.autograd.grad(l_f_meta, (meta_model.feature.parameters()), create_graph=True, retain_graph = True)
+            grads_fc = torch.autograd.grad(l_f_meta, (meta_model.classifier.parameters()), create_graph=True)
+            meta_model.feature.update_params(0.001, source_params = grads_feature)
+            
+            y_g_hat = meta_model(val_input)
+            l_g_meta = meta_criterion(y_g_hat, val_label).sum()
+            grad_eps = torch.autograd.grad(l_g_meta, eps, only_inputs = True, retain_graph = True)[0]
+            w_1 = -grad_eps
+            norm_c = torch.sum(abs(w_1))
+            w_1 = w_1 / norm_c
+
+            # FC backward
+            meta_model.load_state_dict(model.state_dict())
+            meta_model.classifier.update_params(0.001, source_params = grads_fc)
+
+            y_g_hat = meta_model(val_input)
+            l_g_meta = meta_criterion(y_g_hat, val_label).sum()
+            grad_eps = torch.autograd.grad(l_g_meta, eps, only_inputs = True, retain_graph = True)[0]
+            
+            w_2 = -grad_eps
+            norm_c = torch.sum(abs(w_2))
+
+            w_2 = w_2 / norm_c
+        
         index += 1
-        w = torch.clamp(-grad_eps, min = 0)
-        norm_c = torch.sum(abs(w))
-
-        w = w / norm_c
         output = model(input)
-        loss = (meta_criterion(output, label) * w).sum()
+        loss = (meta_criterion(output, label) * w1).sum()
         #print(loss)
         prediction = torch.softmax(output, 1)
 
-        optimizer.zero_grad()
-        if loss < 10000:
-            loss.backward()
-            optimizer.step()
-        else:
-            bp()
+        optimizers[0].zero_grad()
+        loss.backward(retain_graph = True)
+        optimizers[0].step()
+        
+        if w2 is not None:
+            loss_2 = (meta_criterion(output, label) * w2).sum()
+            optimizers[1].zero_grad()
+            loss_2.backward()
+            optimizers[1].step()
+            
         top1 = accuracy(prediction, label)
         accs.append(top1)
         losses.append(loss.detach())
+        
 
     acc = sum(accs) / len(accs)
     loss = sum(losses) / len(losses)
+    loss_2 = sum(losses_2) / len(losses_2)
+    w1_all = torch.cat(w1_all)
+    w2_all = torch.cat(w2_all)
+    writer.add_histogram("train/w1", w1_all, epoch)
+    writer.add_histogram("train/w2", w2_all, epoch)
     writer.add_scalar("train/acc", acc, epoch)
     writer.add_scalar("train/loss", loss, epoch)
+    if w2 is not None:
+        writer.add_scalar("train/loss_2", loss_2, epoch)
+    
     print("Training Epoch: {}, Accuracy: {}, Losses: {}".format(epoch, acc, loss))
     return acc, loss
 

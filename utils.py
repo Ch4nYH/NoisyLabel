@@ -56,8 +56,21 @@ def get_args():
         type=float,
         default = 0.5
     )
+    
+    parser.add_argument(
+        '-c',
+        '--components',
+        type=list
+    )
+    
+    parser.add_argument(
+        '--clamp',
+        action="store_true"
+    )
 
     args = parser.parse_args()
+    for i in args.components:
+        assert i in ['all', 'fc', 'backbone']
     return args
 
 def accuracy(output, target, topk=(1,)):

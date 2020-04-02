@@ -56,9 +56,6 @@ def main():
     train_loader = DataLoader(train_dataset, batch_size = args.batch_size, num_workers = args.num_workers)
     val_loader = DataLoader(val_dataset, batch_size = args.batch_size, num_workers = args.num_workers)
 
-    iter_train_loader = iter(train_loader)
-    iter_val_loader = iter(val_loader)
-
     model = Model(input_channel = input_channel)
     optimizer = torch.optim.Adam(model.parameters(), lr = args.lr)
     optimizer_fc = torch.optim.Adam(model.classifier.parameters(), lr = args.lr)
