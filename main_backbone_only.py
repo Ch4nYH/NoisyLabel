@@ -1,4 +1,6 @@
+
 import os
+from pdb import set_trace as bp
 import numpy as np
 
 import torch
@@ -6,13 +8,13 @@ import torch.nn as nn
 import torch.backends.cudnn as cudnn
 from torch.utils.data import DataLoader
 
-from datasets import MNISTDataset, CIFARDataset
-from utils import get_args, accuracy
-from meta_models import Model, to_var
-
-from pdb import set_trace as bp
 from tensorboardX import SummaryWriter
 from torchvision import transforms
+
+from meta_models import Model, to_var
+from datasets import MNISTDataset, CIFARDataset
+from utils import get_args, accuracy
+
 import copy
 
 def main():
