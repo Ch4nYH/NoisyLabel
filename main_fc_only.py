@@ -45,8 +45,8 @@ def main():
                 transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
             ])
         } 
-        train_dataset = CIFARDataset(split = 'train', seed = args.seed, transform = data_transforms['train'])
-        val_dataset = CIFARDataset(split = 'val', seed = args.seed, transform = data_transforms['val'])
+        train_dataset = CIFARDataset(split = 'train', seed = args.seed, transform = data_transforms['train'], percent = args.percent)
+        val_dataset = CIFARDataset(split = 'val', seed = args.seed, transform = data_transforms['val'], percent = args.percent)
         input_channel = 3
     else:
         raise NotImplementedError
