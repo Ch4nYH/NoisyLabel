@@ -122,10 +122,9 @@ def train(model, input_channel, optimizer, optimizer_backbone, criterion, train_
         norm_c = torch.sum(abs(w))
 
         w = w / norm_c
+        w2 = copy.deepcopy(w)
         w1 = w * 1.0
         w1[w1 < 0] = 0
-
-        w2 = w * 1.0
         w2[w2 > 0] = 0
 
         w1_all.append(w1.detach().view(-1))

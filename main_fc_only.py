@@ -13,6 +13,8 @@ from meta_models import Model, to_var
 from pdb import set_trace as bp
 from tensorboardX import SummaryWriter
 from torchvision import transforms
+import copy
+
 
 def main():
 
@@ -122,10 +124,9 @@ def train(model, input_channel, optimizer, optimizer_fc, criterion, train_loader
         norm_c = torch.sum(abs(w))
 
         w = w / norm_c
+        w2 = copy.deepcopy(w)
         w1 = w * 1.0
         w1[w1 < 0] = 0
-
-        w2 = w * 1.0
         w2[w2 > 0] = 0
 
         w1_all.append(w1.detach().view(-1))
