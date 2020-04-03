@@ -138,6 +138,7 @@ def train(model, input_channel, optimizers, criterion, components, train_loader,
             if ('fc' in components) or ('backbone' in components):
                 w2 = copy.deepcopy(w1)
                 w2[w2 > 0] = 0
+                w1[w1 < 0] = 0
 
             w1_all.append(w1.detach().view(-1))
             if w2 is not None:
