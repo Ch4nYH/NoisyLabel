@@ -108,10 +108,10 @@ def train(model, input_channel, optimizers, criterion, components, train_loader,
         input = to_var(input, requires_grad = False)
         label = to_var(label, requires_grad = False).long()
         try:
-            val_input, val_label = next(iter_val_loader)
+            val_input, val_label, _ = next(iter_val_loader)
         except:
             iter_val_loader = iter(val_loader)
-            val_input, val_label = next(iter_val_loader)
+            val_input, val_label, _ = next(iter_val_loader)
 
         val_input = to_var(val_input, requires_grad = False)
         val_label = to_var(val_label, requires_grad = False).long()
@@ -211,7 +211,7 @@ def train(model, input_channel, optimizers, criterion, components, train_loader,
     writer.add_histogram("train/w1_on_clean", w1_all[noisy_labels == true_labels], epoch)
     writer.add_histogram("train/w2_on_noisy", w2_all[noisy_labels != true_labels], epoch)
     writer.add_histogram("train/w2_on_clean", w2_all[noisy_labels == true_labels], epoch)
-    
+
     writer.add_scalar("train/acc", acc, epoch)
     writer.add_scalar("train/loss", loss, epoch)
     if w2 is not None:
@@ -225,7 +225,7 @@ def val(model, val_loader, criterion, epoch, writer, use_CUDA = True):
     accs = []
     losses = []
     with torch.no_grad():
-        for (input, label) in val_loader:
+        for (input, label, _) in val_loader:
             input = to_var(input, requires_grad = False)
             label = to_var(label, requires_grad = False).long()
 
