@@ -94,7 +94,12 @@ def train(model, input_channel, optimizers, criterion, components, train_loader,
     w2 = None
     w1_all = []
     w2_all = []
-    for (input, label) in train_loader:
+    noisy_labels = []
+    true_labels = []
+    for (input, label, real) in train_loader:
+        noisy_labels.append(label)
+        true_labels.append(label)
+
         meta_model = Model(input_channel = input_channel)
         meta_model.load_state_dict(model.state_dict())
         if use_CUDA:
@@ -197,8 +202,16 @@ def train(model, input_channel, optimizers, criterion, components, train_loader,
     else: loss_2 = 0
     w1_all = torch.cat(w1_all)
     w2_all = torch.cat(w2_all)
+    noisy_labels = torch.cat(noisy_labels)
+    true_labels = torch.cat(true_labels)
     writer.add_histogram("train/w1", w1_all, epoch)
     writer.add_histogram("train/w2", w2_all, epoch)
+
+    writer.add_histogram("train/w1_on_noisy", w1_all[noisy_labels != true_labels], epoch)
+    writer.add_histogram("train/w1_on_clean", w1_all[noisy_labels == true_labels], epoch)
+    writer.add_histogram("train/w2_on_noisy", w2_all[noisy_labels != true_labels], epoch)
+    writer.add_histogram("train/w2_on_clean", w2_all[noisy_labels == true_labels], epoch)
+    
     writer.add_scalar("train/acc", acc, epoch)
     writer.add_scalar("train/loss", loss, epoch)
     if w2 is not None:
