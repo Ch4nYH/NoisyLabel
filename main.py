@@ -133,14 +133,12 @@ def train(model, input_channel, optimizers, criterion, components, train_loader,
             else:
                 w1 = -grad_eps
             
-            
-            w1 = torch.clamp(-grad_eps, min = 0)
             norm_c = torch.sum(abs(w1))
             w1 = w1 / norm_c
             if ('fc' in components) or ('backbone' in components):
                 w2 = copy.deepcopy(w1)
                 w2[w2 > 0] = 0
-            
+
             w1_all.append(w1.detach().view(-1))
             if w2 is not None:
                 w2_all.append(w2.detach().view(-1))
@@ -153,7 +151,10 @@ def train(model, input_channel, optimizers, criterion, components, train_loader,
             y_g_hat = meta_model(val_input)
             l_g_meta = meta_criterion(y_g_hat, val_label).sum()
             grad_eps = torch.autograd.grad(l_g_meta, eps, only_inputs = True, retain_graph = True)[0]
-            w_1 = -grad_eps
+            if clamp:
+                w_1 = torch.clamp(-grad_eps, min = 0)
+            else:
+                w_1 = -grad_eps
             norm_c = torch.sum(abs(w_1))
             w_1 = w_1 / norm_c
 
@@ -165,7 +166,10 @@ def train(model, input_channel, optimizers, criterion, components, train_loader,
             l_g_meta = meta_criterion(y_g_hat, val_label).sum()
             grad_eps = torch.autograd.grad(l_g_meta, eps, only_inputs = True, retain_graph = True)[0]
             
-            w_2 = -grad_eps
+            if clamp:
+                w_2 = torch.clamp(-grad_eps, min = 0)
+            else:
+                w_2 = -grad_eps
             norm_c = torch.sum(abs(w_2))
 
             w_2 = w_2 / norm_c
@@ -185,7 +189,8 @@ def train(model, input_channel, optimizers, criterion, components, train_loader,
             optimizers[1].zero_grad()
             loss_2.backward()
             optimizers[1].step()
-            
+            losses_2.append(loss_2.detach())
+
         top1 = accuracy(prediction, label)
         accs.append(top1)
         losses.append(loss.detach())
@@ -193,7 +198,8 @@ def train(model, input_channel, optimizers, criterion, components, train_loader,
 
     acc = sum(accs) / len(accs)
     loss = sum(losses) / len(losses)
-    loss_2 = sum(losses_2) / len(losses_2)
+    if len(losses_2) > 0: loss_2 = sum(losses_2) / len(losses_2)
+    else: loss_2 = 0
     w1_all = torch.cat(w1_all)
     w2_all = torch.cat(w2_all)
     noisy_labels = torch.cat(noisy_labels)

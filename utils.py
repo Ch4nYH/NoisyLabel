@@ -60,7 +60,8 @@ def get_args():
     parser.add_argument(
         '-c',
         '--components',
-        type=list
+        type=str,
+        nargs="+"
     )
     
     parser.add_argument(
