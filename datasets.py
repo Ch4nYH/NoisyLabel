@@ -65,12 +65,13 @@ class BaseDataset(Dataset):
         super(BaseDataset, self).__init__()
         self.x = []
         self.y = []
+        self.t = []
         self.transform = None
 
     def __getitem__(self, idx):
 
         if self.transform is not None:
-            return self.transform(self.x[idx]), self.y[idx]
+            return self.transform(self.x[idx]), self.y[idx], self.t[idx]
         else:
             return self.x[idx], self.y[idx]
 
@@ -91,6 +92,7 @@ class MNISTDataset(BaseDataset):
         if (split == 'train'):
             self.x = self.x_tr
             self.y = noisy_tr
+            self.t = self.y_tr
         else:
             self.x = self.x_te
             self.y = self.y_te
@@ -108,15 +110,10 @@ class CIFARDataset(BaseDataset):
         if (split == 'train'):
             self.x = self.x_tr
             self.y = noisy_tr
+            self.t = self.y_tr
         else:
             self.x = self.x_te
             self.y = self.y_te
-
-
-if __name__ == '__main__':
-    (x_tr, y_tr), (x_te, y_te) = get_mnist()
-    noisy_labels = make_50_symmetric_random_labels(y_tr, seed = 1)
-    print(noisy_labels)
 
 
 
