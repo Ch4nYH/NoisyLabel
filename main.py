@@ -98,7 +98,7 @@ def train(model, input_channel, optimizers, criterion, components, train_loader,
     true_labels = []
     for (input, label, real) in train_loader:
         noisy_labels.append(label)
-        true_labels.append(label)
+        true_labels.append(real)
 
         meta_model = Model(input_channel = input_channel)
         meta_model.load_state_dict(model.state_dict())
