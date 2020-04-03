@@ -73,7 +73,7 @@ class BaseDataset(Dataset):
         if self.transform is not None:
             return self.transform(self.x[idx]), self.y[idx], self.t[idx]
         else:
-            return self.x[idx], self.y[idx]
+            return self.x[idx], self.y[idx], self.t[idx]
 
     def __len__(self):
 
@@ -96,6 +96,7 @@ class MNISTDataset(BaseDataset):
         else:
             self.x = self.x_te
             self.y = self.y_te
+            self.t = self.y_te
 
 class CIFARDataset(BaseDataset):
     def __init__(self, split = 'train', seed = 1, transform = None, percent = 0.5):
@@ -114,6 +115,7 @@ class CIFARDataset(BaseDataset):
         else:
             self.x = self.x_te
             self.y = self.y_te
+            self.t = self.y_te
 
 
 

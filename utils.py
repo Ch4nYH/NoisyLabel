@@ -67,6 +67,12 @@ def get_args():
         '--clamp',
         action="store_true"
     )
+
+    parser.add_argument(
+        '--clamp',
+        action="store_true"
+    )
+    
     args = parser.parse_args()
     for i in args.components:
         assert i in ['all', 'fc', 'backbone']
