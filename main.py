@@ -206,7 +206,8 @@ def train(model, input_channel, optimizers, criterion, components, train_loader,
     true_labels = torch.cat(true_labels)
     writer.add_histogram("train/w1", w1_all, epoch)
     writer.add_histogram("train/w2", w2_all, epoch)
-
+    print(noisy_labels)
+    print(true_labels)
     writer.add_histogram("train/w1_on_noisy", w1_all[noisy_labels != true_labels], epoch)
     writer.add_histogram("train/w1_on_clean", w1_all[noisy_labels == true_labels], epoch)
     writer.add_histogram("train/w2_on_noisy", w2_all[noisy_labels != true_labels], epoch)
