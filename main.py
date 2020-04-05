@@ -61,25 +61,25 @@ def main():
         if c == 'all':
             optimizer = torch.optim.Adam(model.parameters(), lr = args.lr)
         elif c == 'fc':
-            optimizer = torch.optim.Adam(model.classifier.parameters(), lr = args.lr)
+            optimizer = torch.optim.Adam(model.classifier.parameters(), lr = args.lr * args.gamma)
         elif c == 'backbone':
-            optimizer = torch.optim.Adam(model.feature.parameters(), lr = args.lr)
+            optimizer = torch.optim.Adam(model.feature.parameters(), lr = args.lr * args.gamma)
         optimizers.append(optimizer)
         
     scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, [80], gamma=0.5, last_epoch=-1)
 
-    if not os.path.exists(args.modeldir):
-        os.mkdir(args.modeldir)
-    writer = SummaryWriter(args.modeldir)
+    save_path = os.path.join(args.prefix, args.modeldir)
+    if not os.path.exists(save_path):
+        os.mkdir(save_path)
+    writer = SummaryWriter(save_path)
 
     best_prec = 0
-    #model, optimizer, rollouts, current_optimizee_step, prev_optimizee_step = prepare_optimizee(args, input_channel, use_CUDA, args.num_steps, sgd_in_names, obs_shape, hidden_size, actor_critic, current_optimizee_step, prev_optimizee_step):
     for epoch in range(args.epochs):
         train(model, input_channel, optimizers, criterion, args.components, train_loader, val_loader, epoch, writer, use_CUDA, clamp = args.clamp)
         loss, prec = val(model, val_loader, criterion, epoch, writer, use_CUDA)
-        torch.save(model, os.path.join(args.modeldir, 'checkpoint.pth.tar'))
+        torch.save(model, os.path.join(save_path, 'checkpoint.pth.tar'))
         if prec > best_prec:
-            torch.save(model, os.path.join(args.modeldir, 'model_best.pth.tar'))
+            torch.save(model, os.path.join(save_path, 'model_best.pth.tar'))
             best_prec = prec
 
 
@@ -92,6 +92,7 @@ def train(model, input_channel, optimizers, criterion, components, train_loader,
     meta_criterion = nn.CrossEntropyLoss(reduce = False)
     index = 0
     w2 = None
+
     w1_all = []
     w2_all = []
     noisy_labels = []
@@ -137,12 +138,15 @@ def train(model, input_channel, optimizers, criterion, components, train_loader,
             w1 = w1 / norm_c
             if ('fc' in components) or ('backbone' in components):
                 w2 = copy.deepcopy(w1)
-                w2[w2 > 0] = 0
-                w1[w1 < 0] = 0
+                w2 = torch.clamp(w2, max = 0)
+                w1 = torch.clamp(w1, min = 0)
 
             w1_all.append(w1.detach().view(-1))
             if w2 is not None:
                 w2_all.append(w2.detach().view(-1))
+
+            assert np.all((w1 >= 0).cpu().numpy())
+            assert np.all((w2 <= 0).cpu().numpy())
         
         else:
             grads_feature = torch.autograd.grad(l_f_meta, (meta_model.feature.parameters()), create_graph=True, retain_graph = True)
@@ -201,14 +205,18 @@ def train(model, input_channel, optimizers, criterion, components, train_loader,
     loss = sum(losses) / len(losses)
     if len(losses_2) > 0: loss_2 = sum(losses_2) / len(losses_2)
     else: loss_2 = 0
+
     w1_all = torch.cat(w1_all)
     w2_all = torch.cat(w2_all)
     noisy_labels = torch.cat(noisy_labels)
     true_labels = torch.cat(true_labels)
     writer.add_histogram("train/w1", w1_all, epoch)
     writer.add_histogram("train/w2", w2_all, epoch)
-    print(noisy_labels)
-    print(true_labels)
+    writer.add_scalar("train/w1_on_noisy", torch.sum(w1_all[noisy_labels != true_labels] != 0), epoch)
+    writer.add_scalar("train/w1_on_clean", torch.sum(w1_all[noisy_labels == true_labels] != 0), epoch)
+    writer.add_scalar("train/w2_on_noisy", torch.sum(w2_all[noisy_labels != true_labels] != 0), epoch)
+    writer.add_scalar("train/w2_on_clean", torch.sum(w2_all[noisy_labels == true_labels] != 0), epoch)
+
     writer.add_histogram("train/w1_on_noisy", w1_all[noisy_labels != true_labels], epoch)
     writer.add_histogram("train/w1_on_clean", w1_all[noisy_labels == true_labels], epoch)
     writer.add_histogram("train/w2_on_noisy", w2_all[noisy_labels != true_labels], epoch)

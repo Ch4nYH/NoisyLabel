@@ -75,6 +75,12 @@ def get_args():
         default = 1.0
     )
 
+    parser.add_argument(
+        '--prefix',
+        default="models",
+        type=str
+    )
+
     args = parser.parse_args()
     for i in args.components:
         assert i in ['all', 'fc', 'backbone']
