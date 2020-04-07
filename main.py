@@ -146,7 +146,7 @@ def train(model, input_channel, optimizers, criterion, components, train_loader,
                 w2_all.append(w2.detach().view(-1))
 
             assert np.all((w1 >= 0).cpu().numpy())
-            assert np.all((w2 <= 0).cpu().numpy())
+            if w2 is not None: assert np.all((w2 <= 0).cpu().numpy())
         
         else:
             grads_feature = torch.autograd.grad(l_f_meta, (meta_model.feature.parameters()), create_graph=True, retain_graph = True)

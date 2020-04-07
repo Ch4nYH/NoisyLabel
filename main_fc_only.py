@@ -86,7 +86,7 @@ def train(model, input_channel, optimizer, optimizer_fc, criterion, train_loader
     index = 0
     w1_all = []
     w2_all = []
-    for (input, label) in train_loader:
+    for (input, label, _) in train_loader:
         meta_model = Model(input_channel = input_channel)
         meta_model.load_state_dict(model.state_dict())
         if use_CUDA:
@@ -103,10 +103,10 @@ def train(model, input_channel, optimizer, optimizer_fc, criterion, train_loader
         grads = torch.autograd.grad(l_f_meta, (meta_model.parameters()), create_graph=True)
         meta_model.update_params(0.001, source_params = grads)
         try:
-            val_input, val_label = next(iter_val_loader)
+            val_input, val_label, _ = next(iter_val_loader)
         except:
             iter_val_loader = iter(val_loader)
-            val_input, val_label = next(iter_val_loader)
+            val_input, val_label, _ = next(iter_val_loader)
 
         val_input = to_var(val_input, requires_grad = False)
         val_label = to_var(val_label, requires_grad = False).long()
@@ -164,7 +164,7 @@ def val(model, val_loader, criterion, epoch, writer, use_CUDA = True):
     accs = []
     losses = []
     with torch.no_grad():
-        for (input, label) in val_loader:
+        for (input, label, _) in val_loader:
             input = to_var(input, requires_grad = False)
             label = to_var(label, requires_grad = False).long()
 
