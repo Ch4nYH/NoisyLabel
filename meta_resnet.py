@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from meta_models import MetaModule, MetaConv2d, MetaBatchNorm2d, MetaLinear
+from meta_models import MetaModule, MetaConv2d, MetaBatchNorm2d, MetaLinear, MetaSequential
 def conv3x3(in_planes, out_planes, stride=1, groups=1, dilation=1):
     """3x3 convolution with padding"""
     return MetaConv2d(in_planes, out_planes, kernel_size=3, stride=stride,
@@ -135,8 +135,19 @@ class ResNet(MetaModule):
         self.layer4 = self._make_layer(block, 512, layers[3], stride=2,
                                        dilate=replace_stride_with_dilation[2])
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
-        self.fc = MetaLinear(512 * block.expansion, num_classes)
+        self.classifier = MetaLinear(512 * block.expansion, num_classes)
 
+        self.feature = MetaSequential(
+            self.conv1,
+            self.bn1,
+            self.relu,
+            self.layer1,
+            self.layer2,
+            self.layer3,
+            self.layer4,
+            self.avgpool
+        )
+        
         for m in self.modules():
             if isinstance(m, MetaConv2d):
                 nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
@@ -180,19 +191,9 @@ class ResNet(MetaModule):
 
     def _forward_impl(self, x):
         # See note [TorchScript super()]
-        x = self.conv1(x)
-        x = self.bn1(x)
-        x = self.relu(x)
-        x = self.maxpool(x)
-
-        x = self.layer1(x)
-        x = self.layer2(x)
-        x = self.layer3(x)
-        x = self.layer4(x)
-
-        x = self.avgpool(x)
+        x = self.feature(x)
         x = torch.flatten(x, 1)
-        x = self.fc(x)
+        x = self.classifier(x)
 
         return x
 
