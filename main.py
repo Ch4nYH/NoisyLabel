@@ -71,7 +71,7 @@ def main():
     train_loader = DataLoader(train_dataset, batch_size = args.batch_size, num_workers = args.num_workers)
     val_loader = DataLoader(val_dataset, batch_size = args.batch_size, num_workers = args.num_workers)
 
-    model = get_model()(input_channel = input_channel)
+    model = get_model(input_channel = input_channel)
     optimizers = []
     for c in args.components:
         if c == 'all':
@@ -117,7 +117,7 @@ def train(model, input_channel, optimizers, criterion, components, train_loader,
         noisy_labels.append(label)
         true_labels.append(real)
 
-        meta_model = get_model()(input_channel = input_channel)
+        meta_model = get_model(input_channel = input_channel)
         meta_model.load_state_dict(model.state_dict())
         if use_CUDA:
             meta_model = meta_model.cuda()
