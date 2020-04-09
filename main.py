@@ -223,20 +223,22 @@ def train(model, input_channel, optimizers, criterion, components, train_loader,
     else: loss_2 = 0
 
     w1_all = torch.cat(w1_all)
-    w2_all = torch.cat(w2_all)
+    if len(w2_all) > 0: w2_all = torch.cat(w2_all)
     noisy_labels = torch.cat(noisy_labels)
     true_labels = torch.cat(true_labels)
     writer.add_histogram("train/w1", w1_all, epoch)
-    writer.add_histogram("train/w2", w2_all, epoch)
+    if len(w2_all) > 0: writer.add_histogram("train/w2", w2_all, epoch)
     writer.add_scalar("train/w1_on_noisy", torch.sum(w1_all[noisy_labels != true_labels] != 0), epoch)
     writer.add_scalar("train/w1_on_clean", torch.sum(w1_all[noisy_labels == true_labels] != 0), epoch)
-    writer.add_scalar("train/w2_on_noisy", torch.sum(w2_all[noisy_labels != true_labels] != 0), epoch)
-    writer.add_scalar("train/w2_on_clean", torch.sum(w2_all[noisy_labels == true_labels] != 0), epoch)
+    if len(w2_all) > 0:
+        writer.add_scalar("train/w2_on_noisy", torch.sum(w2_all[noisy_labels != true_labels] != 0), epoch)
+        writer.add_scalar("train/w2_on_clean", torch.sum(w2_all[noisy_labels == true_labels] != 0), epoch)
 
     writer.add_histogram("train/w1_on_noisy", w1_all[noisy_labels != true_labels], epoch)
     writer.add_histogram("train/w1_on_clean", w1_all[noisy_labels == true_labels], epoch)
-    writer.add_histogram("train/w2_on_noisy", w2_all[noisy_labels != true_labels], epoch)
-    writer.add_histogram("train/w2_on_clean", w2_all[noisy_labels == true_labels], epoch)
+    if len(w2_all) > 0:
+        writer.add_histogram("train/w2_on_noisy", w2_all[noisy_labels != true_labels], epoch)
+        writer.add_histogram("train/w2_on_clean", w2_all[noisy_labels == true_labels], epoch)
 
     writer.add_scalar("train/acc", acc, epoch)
     writer.add_scalar("train/loss", loss, epoch)
