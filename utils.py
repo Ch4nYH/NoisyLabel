@@ -13,10 +13,11 @@ def get_args():
     parser.add_argument('-e', '--epochs', type=int, default = 100 )
     parser.add_argument('-p', '--percent', type=float, default = 0.5 )
     parser.add_argument('-c', '--components', type=str, nargs="+" )    
+    parser.add_argument('-a', '--arch', type=str, default = "default")
     parser.add_argument('--clamp', action="store_true" )
     parser.add_argument('--gamma', type=float, default = 1.0 )
     parser.add_argument('--prefix', default="models", type=str )
-    parser.add_argument('-a', '--arch', type=str, default = "default")
+    parser.add_argument('--num-classes', default=10, type=int)
 
     args = parser.parse_args()
     for i in args.components:
