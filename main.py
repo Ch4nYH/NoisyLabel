@@ -16,7 +16,7 @@ from torchvision import transforms
 import copy
 
 def main():
-
+    global args
     args = get_args()
     torch.manual_seed(args.seed)
     criterion = nn.CrossEntropyLoss()
@@ -272,6 +272,7 @@ def val(model, val_loader, criterion, epoch, writer, use_CUDA = True):
     return acc, loss
 
 def get_model(num_classes = 10, input_channel = 3):
+    global args
     if args.arch == 'default':
         return Model(num_classes, input_channel)
     elif args.arch == 'resnet':
