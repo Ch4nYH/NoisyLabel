@@ -7,7 +7,7 @@ import os
 import os.path as osp
 import pickle
 import copy
-import cPickle as pickle
+import pickle
 
 #imports data
 def unpickle(file):
