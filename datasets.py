@@ -7,7 +7,13 @@ import os
 import os.path as osp
 import pickle
 import copy
+import cPickle as pickle
 
+#imports data
+def unpickle(file):
+    with open(file, 'rb') as fo:
+        dict = pickle.load(fo, encoding='bytes')
+    return dict
 
 def get_mnist():
     mnist_data = fetch_openml("mnist_784")
@@ -103,6 +109,25 @@ class CIFARDataset(BaseDataset):
         super(BaseDataset, self).__init__()
 
         (self.x_tr, self.y_tr), (self.x_te, self.y_te) = get_cifar() 
+        self.transform = transform
+
+        num_classes = len(set(list(self.y_tr)))      
+        noisy_tr = make_symmetric_random_labels(self.y_tr, num_classes = num_classes, seed = seed, percent = percent)
+
+        if (split == 'train'):
+            self.x = self.x_tr
+            self.y = noisy_tr
+            self.t = self.y_tr
+        else:
+            self.x = self.x_te
+            self.y = self.y_te
+            self.t = self.y_te
+            
+class CIFAR100Dataset(BaseDataset):
+    def __init__(self, split = 'train', seed = 1, transform = None, percent = 0.5):
+        super(BaseDataset, self).__init__()
+
+        (self.x_tr, self.y_tr), (self.x_te, self.y_te) = unpickle("cifar-100-python") 
         self.transform = transform
 
         num_classes = len(set(list(self.y_tr)))      

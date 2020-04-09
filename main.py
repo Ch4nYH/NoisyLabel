@@ -6,10 +6,10 @@ import torch.nn as nn
 import torch.backends.cudnn as cudnn
 from torch.utils.data import DataLoader
 
-from datasets import MNISTDataset, CIFARDataset
+from datasets import MNISTDataset, CIFARDataset, CIFAR100Dataset
 from utils import get_args, accuracy
 from meta_models import Model, to_var
-
+from meta_resnet import resnet18
 from pdb import set_trace as bp
 from tensorboardX import SummaryWriter
 from torchvision import transforms
@@ -49,13 +49,29 @@ def main():
         train_dataset = CIFARDataset(split = 'train', seed = args.seed, transform = data_transforms['train'], percent = args.percent)
         val_dataset = CIFARDataset(split = 'val', seed = args.seed, transform = data_transforms['val'], percent = args.percent)
         input_channel = 3
+    elif args.dataset == 'cifar100':
+        data_transforms = {
+            'train': transforms.Compose([
+                transforms.ToPILImage(),
+                transforms.ToTensor(),
+                transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+            ]),
+            'val': transforms.Compose([
+                transforms.ToPILImage(),
+                transforms.ToTensor(),
+                transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+            ])
+        } 
+        train_dataset = CIFAR100Dataset(split = 'train', seed = args.seed, transform = data_transforms['train'], percent = args.percent)
+        val_dataset = CIFAR100Dataset(split = 'val', seed = args.seed, transform = data_transforms['val'], percent = args.percent)
+        input_channel = 3
     else:
         raise NotImplementedError
 
     train_loader = DataLoader(train_dataset, batch_size = args.batch_size, num_workers = args.num_workers)
     val_loader = DataLoader(val_dataset, batch_size = args.batch_size, num_workers = args.num_workers)
 
-    model = Model(input_channel = input_channel)
+    model = get_model()(input_channel = input_channel)
     optimizers = []
     for c in args.components:
         if c == 'all':
@@ -101,7 +117,7 @@ def train(model, input_channel, optimizers, criterion, components, train_loader,
         noisy_labels.append(label)
         true_labels.append(real)
 
-        meta_model = Model(input_channel = input_channel)
+        meta_model = get_model()(input_channel = input_channel)
         meta_model.load_state_dict(model.state_dict())
         if use_CUDA:
             meta_model = meta_model.cuda()
@@ -254,6 +270,12 @@ def val(model, val_loader, criterion, epoch, writer, use_CUDA = True):
     writer.add_scalar("val/loss", loss, epoch)
     print("Validation Epoch: {}, Accuracy: {}, Losses: {}".format(epoch, acc, loss))
     return acc, loss
+
+def get_model(num_classes, input_channel):
+    if args.arch == 'default':
+        return Model(num_classes, input_channel)
+    elif args.arch == 'resnet':
+        return resnet18(num_classes = num_classes)
 
 if __name__ == '__main__':
     main()

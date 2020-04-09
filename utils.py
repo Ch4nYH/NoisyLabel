@@ -3,83 +3,20 @@ import torch
 def get_args():
     parser = argparse.ArgumentParser(description='RL')
     ##### 
-    parser.add_argument(
-        '-l',
-        '--lr',
-        type=float,
-        default = 1e-3
-    )
-    parser.add_argument(
-        '-d',
-        '--dataset',
-        type=str,
-        default = 'mnist'
-    )
-    parser.add_argument(
-        '-g',
-        '--gpu',
-        type=str,
-        default = ""
-    )
-    parser.add_argument(
-        '-m', 
-        '--modeldir',
-        type=str,
-        default = "model"
-    )
-    parser.add_argument(
-        '-b',
-        '--batch-size',
-        type=int,
-        default = 1000
-    )
-    parser.add_argument(
-        '-j',
-        '--num-workers',
-        type = int,
-        default = 8
-    )
-    parser.add_argument(
-        '-s',
-        '--seed', type=int, default=1, help='random seed (default: 1)')
-
-    parser.add_argument(
-        '-e',
-        '--epochs',
-        type=int,
-        default = 100
-    )
-
-    parser.add_argument(
-        '-p',
-        '--percent',
-        type=float,
-        default = 0.5
-    )
-    
-    parser.add_argument(
-        '-c',
-        '--components',
-        type=str,
-        nargs="+"
-    )
-    
-    parser.add_argument(
-        '--clamp',
-        action="store_true"
-    )
-
-    parser.add_argument(
-        '--gamma',
-        type=float,
-        default = 1.0
-    )
-
-    parser.add_argument(
-        '--prefix',
-        default="models",
-        type=str
-    )
+    parser.add_argument('-l', '--lr', type=float, default = 1e-3 )
+    parser.add_argument('-d', '--dataset', type=str, default = 'mnist' )
+    parser.add_argument('-g', '--gpu', type=str, default = "" )
+    parser.add_argument('-m', '--modeldir', type=str, default = "model" )
+    parser.add_argument('-b', '--batch-size', type=int, default = 1000 )
+    parser.add_argument('-j', '--num-workers', type = int, default = 8 )
+    parser.add_argument('-s', '--seed', type=int, default=1, help='random seed (default: 1)')
+    parser.add_argument('-e', '--epochs', type=int, default = 100 )
+    parser.add_argument('-p', '--percent', type=float, default = 0.5 )
+    parser.add_argument('-c', '--components', type=str, nargs="+" )    
+    parser.add_argument('--clamp', action="store_true" )
+    parser.add_argument('--gamma', type=float, default = 1.0 )
+    parser.add_argument('--prefix', default="models", type=str )
+    parser.add_argument('-a', '--arch', type=str, default = "default")
 
     args = parser.parse_args()
     for i in args.components:
