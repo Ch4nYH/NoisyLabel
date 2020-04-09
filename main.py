@@ -71,7 +71,7 @@ def main():
     train_loader = DataLoader(train_dataset, batch_size = args.batch_size, num_workers = args.num_workers)
     val_loader = DataLoader(val_dataset, batch_size = args.batch_size, num_workers = args.num_workers)
 
-    model = get_model(input_channel = input_channel)
+    model = get_model(input_channel = input_channel, num_classes=args.num_classes)
     optimizers = []
     for c in args.components:
         if c == 'all':
@@ -91,7 +91,7 @@ def main():
 
     best_prec = 0
     for epoch in range(args.epochs):
-        train(model, input_channel, optimizers, criterion, args.components, train_loader, val_loader, epoch, writer, use_CUDA, clamp = args.clamp)
+        train(model, input_channel, optimizers, criterion, args.components, train_loader, val_loader, epoch, writer, use_CUDA, clamp = args.clamp, num_classes = args.num_classes)
         loss, prec = val(model, val_loader, criterion, epoch, writer, use_CUDA)
         torch.save(model, os.path.join(save_path, 'checkpoint.pth.tar'))
         if prec > best_prec:
@@ -99,7 +99,7 @@ def main():
             best_prec = prec
 
 
-def train(model, input_channel, optimizers, criterion, components, train_loader, val_loader, epoch, writer, use_CUDA = True, clamp = False):
+def train(model, input_channel, optimizers, criterion, components, train_loader, val_loader, epoch, writer, use_CUDA = True, clamp = False, num_classes = 10):
     model.train()
     accs = []
     losses = []
@@ -117,7 +117,7 @@ def train(model, input_channel, optimizers, criterion, components, train_loader,
         noisy_labels.append(label)
         true_labels.append(real)
 
-        meta_model = get_model(input_channel = input_channel)
+        meta_model = get_model(num_classes = num_classes)
         meta_model.load_state_dict(model.state_dict())
         if use_CUDA:
             meta_model = meta_model.cuda()
@@ -271,7 +271,7 @@ def val(model, val_loader, criterion, epoch, writer, use_CUDA = True):
     print("Validation Epoch: {}, Accuracy: {}, Losses: {}".format(epoch, acc, loss))
     return acc, loss
 
-def get_model(num_classes, input_channel):
+def get_model(num_classes = 10, input_channel = 3):
     if args.arch == 'default':
         return Model(num_classes, input_channel)
     elif args.arch == 'resnet':
