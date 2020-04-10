@@ -9,7 +9,7 @@ from torch.utils.data import DataLoader
 from datasets import MNISTDataset, CIFARDataset, CIFAR100Dataset
 from utils import get_args, accuracy
 from meta_models import Model, to_var
-from meta_resnet import resnet32
+from meta_resnet import resnet34
 from pdb import set_trace as bp
 from tensorboardX import SummaryWriter
 from torchvision import transforms
@@ -278,7 +278,7 @@ def get_model(num_classes = 10, input_channel = 3):
     if args.arch == 'default':
         return Model(num_classes, input_channel)
     elif args.arch == 'resnet':
-        return resnet32(num_classes = num_classes)
+        return resnet34(num_classes = num_classes)
 
 if __name__ == '__main__':
     main()
