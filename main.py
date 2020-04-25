@@ -157,9 +157,9 @@ def train(model, input_channel, optimizers, criterion, components, train_loader,
                 w2 = torch.clamp(w2, max = 0)
                 w1 = torch.clamp(w1, min = 0)
 
-            w1_all.append(w1.detach().view(-1))
+            w1_all.append(w1.detach().cpu().view(-1).numpy())
             if w2 is not None:
-                w2_all.append(w2.detach().view(-1))
+                w2_all.append(w2.detach().cpu().view(-1).numpy())
 
             assert np.all((w1 >= 0).cpu().numpy())
             if w2 is not None: assert np.all((w2 <= 0).cpu().numpy())
@@ -194,9 +194,9 @@ def train(model, input_channel, optimizers, criterion, components, train_loader,
             norm_c = torch.sum(abs(w2))
 
             w2 = w2 / norm_c
-            w1_all.append(w1.detach().view(-1))
+            w1_all.append(w1.detach().cpu().view(-1).numpy())
             if w2 is not None:
-                w2_all.append(w2.detach().view(-1))
+                w2_all.append(w2.detach().cpu().view(-1).numpy())
                 
         index += 1
         output = model(input)
