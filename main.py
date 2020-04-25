@@ -222,8 +222,8 @@ def train(model, input_channel, optimizers, criterion, components, train_loader,
     if len(losses_2) > 0: loss_2 = sum(losses_2) / len(losses_2)
     else: loss_2 = 0
 
-    w1_all = torch.cat(w1_all)
-    if len(w2_all) > 0: w2_all = torch.cat(w2_all)
+    w1_all = np.concatenate(w1_all)
+    if len(w2_all) > 0: w2_all = np.concatenate(w2_all)
     noisy_labels = torch.cat(noisy_labels)
     true_labels = torch.cat(true_labels)
     writer.add_histogram("train/w1", w1_all, epoch)
