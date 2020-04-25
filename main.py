@@ -14,7 +14,7 @@ from pdb import set_trace as bp
 from tensorboardX import SummaryWriter
 from torchvision import transforms
 import copy
-
+args = None
 def main():
     global args
     args = get_args()
@@ -191,7 +191,7 @@ def train(model, input_channel, optimizers, criterion, components, train_loader,
                 w2 = torch.clamp(-grad_eps, min = 0)
             else:
                 w2 = -grad_eps
-            norm_c = torch.sum(abs(w_2))
+            norm_c = torch.sum(abs(w2))
 
             w2 = w2 / norm_c
         
