@@ -173,11 +173,11 @@ def train(model, input_channel, optimizers, criterion, components, train_loader,
             l_g_meta = meta_criterion(y_g_hat, val_label).sum()
             grad_eps = torch.autograd.grad(l_g_meta, eps, only_inputs = True, retain_graph = True)[0]
             if clamp:
-                w_1 = torch.clamp(-grad_eps, min = 0)
+                w1 = torch.clamp(-grad_eps, min = 0)
             else:
-                w_1 = -grad_eps
-            norm_c = torch.sum(abs(w_1))
-            w_1 = w_1 / norm_c
+                w1 = -grad_eps
+            norm_c = torch.sum(abs(w1))
+            w1 = w1 / norm_c
 
             # FC backward
             meta_model.load_state_dict(model.state_dict())
@@ -188,12 +188,12 @@ def train(model, input_channel, optimizers, criterion, components, train_loader,
             grad_eps = torch.autograd.grad(l_g_meta, eps, only_inputs = True, retain_graph = True)[0]
             
             if clamp:
-                w_2 = torch.clamp(-grad_eps, min = 0)
+                w2 = torch.clamp(-grad_eps, min = 0)
             else:
-                w_2 = -grad_eps
+                w2 = -grad_eps
             norm_c = torch.sum(abs(w_2))
 
-            w_2 = w_2 / norm_c
+            w2 = w2 / norm_c
         
         index += 1
         output = model(input)
