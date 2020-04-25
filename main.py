@@ -194,7 +194,10 @@ def train(model, input_channel, optimizers, criterion, components, train_loader,
             norm_c = torch.sum(abs(w2))
 
             w2 = w2 / norm_c
-        
+            w1_all.append(w1.detach().view(-1))
+            if w2 is not None:
+                w2_all.append(w2.detach().view(-1))
+                
         index += 1
         output = model(input)
         loss = (meta_criterion(output, label) * w1).sum()
