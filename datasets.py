@@ -127,12 +127,26 @@ class CIFAR100Dataset(BaseDataset):
     def __init__(self, split = 'train', seed = 1, transform = None, percent = 0.5):
         super(BaseDataset, self).__init__()
 
-        (self.x_tr, self.y_tr), (self.x_te, self.y_te) = unpickle("cifar-100-python") 
+        if split == 'train':
+            d = unpickle("cifar-100-python/train")
+            self.x_tr = d[b'data']
+            self.y_tr = d[b'fine_labels']
+            self.x_tr = np.array(self.x_tr)
+            self.x_tr= self.x_tr.reshape((self.x_tr.shape[0], 3, 32, 32)).transpose(0, 2, 3, 1)
+            self.y_tr = np.array(self.y_tr)
+            num_classes = 100    
+            noisy_tr = make_symmetric_random_labels(self.y_tr, num_classes = num_classes, seed = seed, percent = percent)
+        else:
+            d = unpickle("cifar-100-python/test")
+            self.x_te = d[b'data']
+            self.y_te = d[b'fine_labels']
+            self.x_te = np.array(self.x_te)
+            self.x_te= self.x_te.reshape((self.x_te.shape[0], 3, 32, 32)).transpose(0, 2, 3, 1)
+            self.y_te = np.array(self.y_te)
+
         self.transform = transform
 
-        num_classes = len(set(list(self.y_tr)))      
-        noisy_tr = make_symmetric_random_labels(self.y_tr, num_classes = num_classes, seed = seed, percent = percent)
-
+        
         if (split == 'train'):
             self.x = self.x_tr
             self.y = noisy_tr
