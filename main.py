@@ -231,6 +231,10 @@ def train(model, input_channel, optimizers, criterion, components, train_loader,
     true_labels = torch.cat(true_labels)
     writer.add_histogram("train/w1", w1_all, epoch)
     if len(w2_all) > 0: writer.add_histogram("train/w2", w2_all, epoch)
+    
+    print(np.sum(w1_all[noisy_labels != true_labels] != 0))
+    raise NotADirectoryError
+
     writer.add_scalar("train/w1_on_noisy", np.sum(w1_all[noisy_labels != true_labels] != 0), epoch)
     writer.add_scalar("train/w1_on_clean", np.sum(w1_all[noisy_labels == true_labels] != 0), epoch)
     if len(w2_all) > 0:
