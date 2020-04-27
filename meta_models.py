@@ -466,12 +466,12 @@ class Model(MetaModule):
             MetaBatchNorm2d(128),
             nn.AdaptiveAvgPool2d((1,1)),
         ]
-        self.feature = MetaSequential(*feature_layers)
+        self.backbone = MetaSequential(*feature_layers)
 
-        self.classifier = MetaLinear(128, num_classes, bias = False)
+        self.fc = MetaLinear(128, num_classes, bias = False)
 
     def forward(self, x):
-        feature = self.feature(x)
+        feature = self.backbone(x)
         feature = feature.view(-1, 128)
-        out = self.classifier(feature)
+        out = self.fc(feature)
         return out
