@@ -1,5 +1,6 @@
 import argparse
 import torch
+import numpy as np
 def get_args():
     parser = argparse.ArgumentParser(description='RL')
     ##### 
@@ -51,3 +52,45 @@ def get_val_samples(iter_val_loader, val_loader):
         val_input, val_label, _ = next(iter_val_loader)
     
     return  val_input, val_label, iter_val_loader
+
+
+class WLogger(object):
+    def __init__(self):
+        self.w = []
+        
+    def update(self, w):
+        if isinstance(w, torch.Tensor):
+            w = w.detach().cpu().numpy().flatten()
+        assert isinstance(w, np.ndarray)
+        
+        self.w.append(w)
+    def cleanup(self):
+        self.w = []
+    def write(self, writer, name, epoch):
+        w = np.concatenate(self.w, 0)
+        writer.add_scalar('w_' + name, np.sum(w), epoch)
+        writer.add_histogram('w_' + name, np.sum(w), epoch)
+        
+    
+    def mask_write(self, writer, name, epoch, mask):
+        w = np.concatenate(self.w, 0)
+        writer.add_scalar('masked_w_' + name, np.sum(self.w[mask]) / np.sum(self.w), 0)
+        
+        
+class ScalarLogger(object):
+    def __init__(self, prefix):
+        self.scalars = []
+        self.prefix = prefix
+    def update(self, scalar):
+        if isinstance(scalar, torch.Tensor):
+            scalar = scalar.item()
+        assert isinstance(scalar, float)
+        
+        self.l.append(l)
+    def write(self, writer, name, epoch):
+        avg_scalar = np.mean(np.array(self.scalars))
+        writer.add_scalar(self.prefix + "_" + name, avg_scalar, epoch)
+        self.scalars = []
+    
+    def avg(self):
+        return np.mean(np.array(self.scalars))
