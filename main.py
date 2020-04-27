@@ -198,7 +198,7 @@ def train(model, input_channel, optimizers, criterion, components, train_loader,
         
     noisy_labels = torch.cat(noisy_labels)
     true_labels = torch.cat(true_labels)
-    mask = (noisy_labels != true_labels)
+    mask = (noisy_labels != true_labels).cpu().numpy()
     for c in components:
         w_logger[c].write(writer, c, epoch)
         w_logger[c].mask_write(writer, c, epoch, mask)
