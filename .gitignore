@@ -5,3 +5,4 @@ cifar/
 cifar*/
 logs/
 models/
+*.gz
