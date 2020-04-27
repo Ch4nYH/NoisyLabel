@@ -201,7 +201,7 @@ def train(model, input_channel, optimizers, criterion, components, train_loader,
     mask = (noisy_labels != true_labels)
     for c in components:
         w_logger[c].write(writer, c, epoch)
-        w_logger[c].mask_write(writer, c, epoch)
+        w_logger[c].mask_write(writer, c, epoch, mask)
         losses_logger[c].write(writer, c, epoch)
 
     accuracy_logger.write(writer, 'train', epoch)
