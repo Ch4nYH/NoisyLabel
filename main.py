@@ -184,6 +184,7 @@ def train(model, input_channel, optimizers, criterion, components, train_loader,
         index += 1
         output = model(input)
         loss = defaultdict()
+        prediction = torch.argmax(output, 1)
         for c in components:
             w_logger[c].update(w[c])
             loss[c] = (meta_criterion(output, label) * w[c]).sum()
