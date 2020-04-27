@@ -74,7 +74,7 @@ class WLogger(object):
     
     def mask_write(self, writer, name, epoch, mask):
         w = np.concatenate(self.w, 0)
-        writer.add_scalar('masked_w_' + name, np.sum(self.w[mask]) / np.sum(self.w), 0)
+        writer.add_scalar('masked_w_' + name, np.sum(self.w[mask == True]) / np.sum(self.w), 0)
         
         
 class ScalarLogger(object):
