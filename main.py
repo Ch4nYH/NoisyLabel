@@ -211,8 +211,8 @@ def train(model, input_channel, optimizers, criterion, components, train_loader,
 
 def val(model, val_loader, criterion, epoch, writer, use_CUDA = True):
     model.eval()
-    accuracy_logger = ScalarLogger()
-    losses_logger = ScalarLogger()
+    accuracy_logger = ScalarLogger(prefix = 'accuracy')
+    losses_logger = ScalarLogger(prefix = 'loss')
     with torch.no_grad():
         for (input, label, _) in val_loader:
             input = to_var(input, requires_grad = False)
