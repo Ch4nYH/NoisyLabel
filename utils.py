@@ -86,7 +86,7 @@ class ScalarLogger(object):
             scalar = scalar.item()
         assert isinstance(scalar, float)
         
-        self.l.append(l)
+        self.scalars.append(scalar)
     def write(self, writer, name, epoch):
         avg_scalar = np.mean(np.array(self.scalars))
         writer.add_scalar(self.prefix + "_" + name, avg_scalar, epoch)
