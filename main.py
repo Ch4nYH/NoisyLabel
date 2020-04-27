@@ -244,11 +244,10 @@ def get_optimizers(model, components, lr, gamma):
     opt = torch.optim.Adam
     if 'all' in components:
         optimizers['all'] = opt(model.parameters(), lr = args.lr)
-    elif 'fc' in components:
+    if 'fc' in components:
         optimizers['fc'] = opt(model.fc.parameters(), lr = args.lr * args.gamma)
-    elif 'backbone' in components:
+    if 'backbone' in components:
         optimizers['backbone'] = opt(model.backbone.parameters(), lr = args.lr * args.gamma)
-    
     return optimizers
 if __name__ == '__main__':
     main()
