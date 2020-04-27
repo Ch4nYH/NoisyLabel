@@ -135,9 +135,9 @@ class ResNet(MetaModule):
         self.layer4 = self._make_layer(block, 512, layers[3], stride=2,
                                        dilate=replace_stride_with_dilation[2])
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
-        self.classifier = MetaLinear(512 * block.expansion, num_classes)
+        self.fc = MetaLinear(512 * block.expansion, num_classes)
 
-        self.feature = MetaSequential(
+        self.backbone = MetaSequential(
             self.conv1,
             self.bn1,
             self.relu,
@@ -191,9 +191,9 @@ class ResNet(MetaModule):
 
     def _forward_impl(self, x):
         # See note [TorchScript super()]
-        x = self.feature(x)
+        x = self.backbone(x)
         x = torch.flatten(x, 1)
-        x = self.classifier(x)
+        x = self.fc(x)
 
         return x
 
