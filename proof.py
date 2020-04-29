@@ -193,7 +193,7 @@ def train(model, input_channel, optimizers, criterion, components, train_loader,
     pickle.dump(w_all, open('w.npy', 'wb'))
     print(np.std(w_all, axis = 1))
     print(np.mean(w_all, axis = 1))
-    print(np.mean(w_all, axis = 1) / np.std(w_all, axis = 1))
+    print(np.std(w_all, axis = 1) / np.mean(w_all, axis = 1))
 def val(model, val_loader, criterion, epoch, writer, use_CUDA = True):
     model.eval()
     accuracy_logger = ScalarLogger(prefix = 'accuracy')
@@ -212,10 +212,10 @@ def val(model, val_loader, criterion, epoch, writer, use_CUDA = True):
 
     accuracy_logger.write(writer, 'val', epoch)
     losses_logger.writer(writer, 'val', epoch)
-    accuracy = accuracy_logger.avg()
+    accuracy_ = accuracy_logger.avg()
     losses = losses_logger.avg()
-    print("Validation Epoch: {}, Accuracy: {}, Losses: {}".format(epoch, accuracy, losses))
-    return accuracy, losses
+    print("Validation Epoch: {}, Accuracy: {}, Losses: {}".format(epoch, accuracy_, losses))
+    return accuracy_, losses
 
 def get_model(args, num_classes = 10, input_channel = 3):
     if args.arch == 'default':
