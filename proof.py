@@ -189,7 +189,7 @@ def train(model, input_channel, optimizers, criterion, components, train_loader,
 
         w_all.append(w['all'].detach().cpu().numpy())
     
-    w_all = numpy.concatenate(w_all, axis = 1)
+    w_all = np.concatenate(w_all, axis = 1)
     pickle.dump(w_all, 'w.npy')
 
 def val(model, val_loader, criterion, epoch, writer, use_CUDA = True):
