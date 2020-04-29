@@ -4,6 +4,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.backends.cudnn as cudnn
+import torch.nn.functional as F
 from torch.utils.data import DataLoader
 
 from datasets import MNISTDataset, CIFARDataset, CIFAR100Dataset
@@ -81,6 +82,8 @@ def main():
         if prec > best_prec:
             torch.save(model, os.path.join(save_path, 'model_best.pth.tar'))
             best_prec = prec
+        
+        adjust_learning_rate(optimizers, args.lr, args.gamma, epoch, True)
 
 
 def train(model, input_channel, optimizers, criterion, components, train_loader, val_loader, epoch, writer, args, use_CUDA = True, clamp = False, num_classes = 10):
@@ -120,7 +123,7 @@ def train(model, input_channel, optimizers, criterion, components, train_loader,
         val_label = to_var(val_label, requires_grad = False).long()
         
         meta_output = meta_model(input)
-        cost = meta_criterion(meta_output, label)
+        cost = meta_criterion(meta_output, label) 
         eps = to_var(torch.zeros(cost.size()))
         meta_loss = (cost * eps).sum()
         meta_model.zero_grad()
@@ -251,5 +254,15 @@ def get_optimizers(model, components, lr, gamma):
     if 'backbone' in components:
         optimizers['backbone'] = opt(model.backbone.parameters(), lr = args.lr * args.gamma)
     return optimizers
+
+def adjust_learning_rate(optimizers, lr, gamma, epoch, dynamic_gamma = False):
+    gamma_ = gamma / epoch if dynamic_gamma else gamma
+    for c in optimizers.keys():
+        if c == 'all':
+            pass # TODO: decay
+        else:
+            for param_group in optimizers[c].param_groups:
+                param_group['lr'] = lr * gamma_
+                
 if __name__ == '__main__':
     main()
