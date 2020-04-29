@@ -73,8 +73,6 @@ class WLogger(object):
         w = np.concatenate(self.w, 0)
         writer.add_scalar('w_' + name, np.sum(w), epoch)
         writer.add_histogram('w_' + name, np.sum(w), epoch)
-        
-    
     def mask_write(self, writer, name, epoch, mask):
         w = np.concatenate(self.w, 0)
         writer.add_scalar('masked_w_' + name, np.sum(w[mask]) / np.sum(w), 0)
@@ -93,7 +91,6 @@ class ScalarLogger(object):
     def write(self, writer, name, epoch):
         avg_scalar = np.mean(np.array(self.scalars))
         writer.add_scalar(self.prefix + "_" + name, avg_scalar, epoch)
-        self.scalars = []
     
     def avg(self):
         return np.mean(np.array(self.scalars))
