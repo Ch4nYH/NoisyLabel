@@ -19,8 +19,11 @@ def get_args():
     parser.add_argument('--gamma', type=float, default = 1.0 )
     parser.add_argument('--prefix', default="models", type=str )
     parser.add_argument('--num-classes', default=10, type=int)
+    parser.add_argument('--val-batch-size', default = None, type = int)
 
     args = parser.parse_args()
+    if args.val_batch_size is None:
+        args.val_batch_size = args.batch_size
     for i in args.components:
         assert i in ['all', 'fc', 'backbone']
     return args
