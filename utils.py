@@ -20,6 +20,7 @@ def get_args():
     parser.add_argument('--prefix', default="models", type=str )
     parser.add_argument('--num-classes', default=10, type=int)
     parser.add_argument('--val-batch-size', default = None, type = int)
+    parser.add_argument('--with-kl', action="store_true")
 
     args = parser.parse_args()
     if args.val_batch_size is None:
