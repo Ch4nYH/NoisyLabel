@@ -190,8 +190,10 @@ def train(model, input_channel, optimizers, criterion, components, train_loader,
         w_all.append(w['all'].detach().cpu().numpy().reshape(128, 1))
     
     w_all = np.concatenate(w_all, axis = 1)
-    pickle.dump(w_all, 'w.npy')
-
+    pickle.dump(w_all, open('w.npy', 'wb'))
+    print(np.std(w_all, axis = 1))
+    print(np.mean(w_all, axis = 1))
+    print(np.mean(w_all, axis = 1) / np.std(w_all, axis = 1))
 def val(model, val_loader, criterion, epoch, writer, use_CUDA = True):
     model.eval()
     accuracy_logger = ScalarLogger(prefix = 'accuracy')
