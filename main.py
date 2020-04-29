@@ -227,11 +227,11 @@ def val(model, val_loader, criterion, epoch, writer, use_CUDA = True):
             losses_logger.update(loss)
 
     accuracy_logger.write(writer, 'val', epoch)
-    losses_logger.writer(writer, 'val', epoch)
-    accuracy = accuracy_logger.avg()
+    losses_logger.write(writer, 'val', epoch)
+    accuracy_ = accuracy_logger.avg()
     losses = losses_logger.avg()
-    print("Validation Epoch: {}, Accuracy: {}, Losses: {}".format(epoch, accuracy, losses))
-    return accuracy, losses
+    print("Validation Epoch: {}, Accuracy: {}, Losses: {}".format(epoch, accuracy_, losses))
+    return accuracy_, losses
 
 def get_model(args, num_classes = 10, input_channel = 3):
     if args.arch == 'default':

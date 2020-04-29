@@ -62,7 +62,7 @@ def main():
         raise NotImplementedError
 
     train_loader = DataLoader(train_dataset, batch_size = args.batch_size, num_workers = args.num_workers)
-    val_loader = DataLoader(val_dataset, batch_size = args.batch_size, num_workers = args.num_workers)
+    val_loader = DataLoader(val_dataset, batch_size = args.val_batch_size, num_workers = args.num_workers)
 
     model = get_model(args, input_channel = input_channel, num_classes=args.num_classes)
     
@@ -211,7 +211,7 @@ def val(model, val_loader, criterion, epoch, writer, use_CUDA = True):
             losses_logger.update(loss)
 
     accuracy_logger.write(writer, 'val', epoch)
-    losses_logger.writer(writer, 'val', epoch)
+    losses_logger.write(writer, 'val', epoch)
     accuracy_ = accuracy_logger.avg()
     losses = losses_logger.avg()
     print("Validation Epoch: {}, Accuracy: {}, Losses: {}".format(epoch, accuracy_, losses))
