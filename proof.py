@@ -190,6 +190,8 @@ def train(model, input_channel, optimizers, criterion, components, train_loader,
         w_all.append(w['all'].detach().cpu().numpy().reshape(128, 1))
     
     w_all = np.concatenate(w_all, axis = 1)
+    
+    assert w_all.shape[0] == 128
     pickle.dump(w_all, open('w.npy', 'wb'))
     print(np.std(w_all, axis = 1))
     print(np.mean(w_all, axis = 1))
