@@ -187,7 +187,7 @@ def train(model, input_channel, optimizers, criterion, components, train_loader,
             norm = torch.sum(abs(w['fc']))
             w['fc'] = w['fc'] / norm
 
-        w_all.append(w['all'].detach().cpu().numpy())
+        w_all.append(w['all'].detach().cpu().numpy().reshape(128, 1))
     
     w_all = np.concatenate(w_all, axis = 1)
     pickle.dump(w_all, 'w.npy')
