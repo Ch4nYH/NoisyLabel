@@ -6,7 +6,7 @@ import torch.nn as nn
 import torch.backends.cudnn as cudnn
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
-
+from te
 from datasets import MNISTDataset, CIFARDataset, CIFAR100Dataset
 from utils import get_args, accuracy, get_val_samples, WLogger, ScalarLogger
 from meta_models import Model, to_var
@@ -256,13 +256,14 @@ def get_optimizers(model, components, lr, gamma):
     return optimizers
 
 def adjust_learning_rate(optimizers, lr, gamma, epoch, dynamic_gamma = False):
-    gamma_ = gamma / epoch if dynamic_gamma else gamma
+    gamma_ = gamma / (epoch + 1) if dynamic_gamma else gamma
     for c in optimizers.keys():
         if c == 'all':
             pass # TODO: decay
         else:
             for param_group in optimizers[c].param_groups:
                 param_group['lr'] = lr * gamma_
+            
                 
 if __name__ == '__main__':
     main()
