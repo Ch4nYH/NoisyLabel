@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #Settings
 extra_components=$1
 model_name=$2
