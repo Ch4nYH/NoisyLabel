@@ -6,7 +6,7 @@ import torch.nn as nn
 import torch.backends.cudnn as cudnn
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
-from te
+from losses import sample_wise_kl
 from datasets import MNISTDataset, CIFARDataset, CIFAR100Dataset
 from utils import get_args, accuracy, get_val_samples, WLogger, ScalarLogger
 from meta_models import Model, to_var
