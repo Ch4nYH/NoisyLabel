@@ -15,6 +15,8 @@ from tensorboardX import SummaryWriter
 from torchvision import transforms
 from collections import defaultdict
 import copy
+import pickle 
+
 args = None
 def main():
     global args
@@ -91,8 +93,6 @@ def train(model, input_channel, optimizers, criterion, components, train_loader,
     iter_val_loader = iter(val_loader)
     meta_criterion = nn.CrossEntropyLoss(reduce = False)
     index = 0
-    noisy_labels = []
-    true_labels = []
     
     w = defaultdict()
     w_logger = defaultdict()
@@ -102,10 +102,16 @@ def train(model, input_channel, optimizers, criterion, components, train_loader,
         w[c] = None
         w_logger[c] = WLogger()
         losses_logger[c] = ScalarLogger(prefix = 'loss')
-         
+    
+    w_all = []
+    
+    store_input = None
+    store_label = None
+    store_real = None
     for (input, label, real) in train_loader:
-        noisy_labels.append(label)
-        true_labels.append(real)
+        if store_input is None:
+            store_input = input
+            store_label = label
         
         meta_model = get_model(args, num_classes = num_classes, input_channel = input_channel)
         meta_model.load_state_dict(model.state_dict())
@@ -114,13 +120,13 @@ def train(model, input_channel, optimizers, criterion, components, train_loader,
 
         
         val_input, val_label, iter_val_loader = get_val_samples(iter_val_loader, val_loader)
-        input = to_var(input, requires_grad = False)
-        label = to_var(label, requires_grad = False).long()
+        store_input = to_var(store_input, requires_grad = False)
+        store_label = to_var(store_label, requires_grad = False).long()
         val_input = to_var(val_input, requires_grad = False)
         val_label = to_var(val_label, requires_grad = False).long()
         
-        meta_output = meta_model(input)
-        cost = meta_criterion(meta_output, label)
+        meta_output = meta_model(store_input)
+        cost = meta_criterion(meta_output, store_label)
         eps = to_var(torch.zeros(cost.size()))
         meta_loss = (cost * eps).sum()
         meta_model.zero_grad()
@@ -180,35 +186,11 @@ def train(model, input_channel, optimizers, criterion, components, train_loader,
                 w['fc'] = -grad_eps
             norm = torch.sum(abs(w['fc']))
             w['fc'] = w['fc'] / norm
-                
-            
-        index += 1
-        output = model(input)
-        loss = defaultdict()
-        prediction = torch.softmax(output, 1)
-        for c in components:
-            w_logger[c].update(w[c])
-            loss[c] = (meta_criterion(output, label) * w[c]).sum()
-            optimizers[c].zero_grad()
-            loss[c].backward(retain_graph = True)
-            optimizers[c].step()
-            losses_logger[c].update(loss[c])
 
-        top1 = accuracy(prediction, label)
-        accuracy_logger.update(top1)
-        
-    noisy_labels = torch.cat(noisy_labels)
-    true_labels = torch.cat(true_labels)
-    mask = (noisy_labels != true_labels).cpu().numpy()
-    for c in components:
-        w_logger[c].write(writer, c, epoch)
-        w_logger[c].mask_write(writer, c, epoch, mask)
-        losses_logger[c].write(writer, c, epoch)
-
-    accuracy_logger.write(writer, 'train', epoch)
+        w_all.append(w['all'].detach().cpu().numpy())
     
-    print("Training Epoch: {}, Accuracy: {}".format(epoch, accuracy_logger.avg()))
-    return accuracy_logger.avg()
+    w_all = numpy.concatenate(w_all, axis = 1)
+    pickle.dump(w_all, 'w.npy')
 
 def val(model, val_loader, criterion, epoch, writer, use_CUDA = True):
     model.eval()
