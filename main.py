@@ -166,7 +166,7 @@ def train(model, input_channel, optimizers, criterion, components, train_loader,
             
             if args.with_kl:
                 train_feature = torch.flatten(meta_model.backbone(input), 1)
-                meta_val_loss += sample_wise_kl(train_feature, meta_val_feature)
+                meta_val_loss -= sample_wise_kl(train_feature, meta_val_feature)
             grad_eps = torch.autograd.grad(meta_val_loss, eps, only_inputs = True, retain_graph = True)[0]
             if clamp:
                 w['backbone'] = torch.clamp(-grad_eps, min = 0)
