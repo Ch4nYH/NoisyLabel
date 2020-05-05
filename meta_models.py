@@ -208,7 +208,7 @@ class MetaLinear(MetaModule):
             return [('weight', self.weight)]
     
 class MetaConv2d(MetaModule):
-    def __init__(self, device, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super().__init__()
         ignore = nn.Conv2d(*args, **kwargs)
         
@@ -216,12 +216,11 @@ class MetaConv2d(MetaModule):
         self.padding = ignore.padding
         self.dilation = ignore.dilation
         self.groups = ignore.groups
-        self.device = device
         
-        self.register_buffer('weight', to_var(ignore.weight.data, self.device, requires_grad=True))
+        self.register_buffer('weight', to_var(ignore.weight.data, requires_grad=True))
         
         if ignore.bias is not None:
-            self.register_buffer('bias', to_var(ignore.bias.data, self.device, requires_grad=True))
+            self.register_buffer('bias', to_var(ignore.bias.data, requires_grad=True))
         else:
             self.register_buffer('bias', None)
         
@@ -232,7 +231,7 @@ class MetaConv2d(MetaModule):
         return [('weight', self.weight), ('bias', self.bias)]
 
 class MetaConv3d(MetaModule):
-    def __init__(self, device, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super().__init__()
         ignore = nn.Conv3d(*args, **kwargs)
         
@@ -240,7 +239,6 @@ class MetaConv3d(MetaModule):
         self.padding = ignore.padding
         self.dilation = ignore.dilation
         self.groups = ignore.groups
-        self.device = device
         
         self.register_buffer('weight', to_var(ignore.weight.data, requires_grad=True))
         
