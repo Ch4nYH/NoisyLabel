@@ -80,7 +80,6 @@ def main():
     print("Successfully get device. ")
     model = model.to(device)
     print("Successfully get model. ")
-    raise NotADirectoryError
     
     optimizers = get_optimizers(model, args.components, args.lr, args.gamma)
        
@@ -94,8 +93,9 @@ def main():
     best_prec = 0
     for epoch in range(args.epochs):
         para_train_loader = pl.ParallelLoader(train_loader, [device])
-        para_test_loader = pl.ParallelLoader(test_loader, [device])
-        train(model, input_channel, optimizers, criterion, args.components, train_loader.per_device_loader(device), val_loader.per_device_loader(device), epoch, writer, args, clamp = args.clamp, num_classes = args.num_classes)
+        para_val_loader = pl.ParallelLoader(val_loader, [device])
+        print("Successfully create loader")
+        train(model, input_channel, optimizers, criterion, args.components, para_train_loader.per_device_loader(device), para_val_loader.per_device_loader(device), epoch, writer, args, device, clamp = args.clamp, num_classes = args.num_classes)
         loss, prec = val(model, val_loader.per_device_loader(device), criterion, epoch, writer)
         torch.save(model, os.path.join(save_path, 'checkpoint.pth.tar'))
         if prec > best_prec:
@@ -105,7 +105,7 @@ def main():
         adjust_learning_rate(optimizers, args.lr, args.gamma, epoch, True)
 
 
-def train(model, input_channel, optimizers, criterion, components, train_loader, val_loader, epoch, writer, args, use_CUDA = True, clamp = False, num_classes = 10):
+def train(model, input_channel, optimizers, criterion, components, train_loader, val_loader, epoch, writer, args, device, clamp = False, num_classes = 10):
     model.train()
     accs = []
     losses_w1 = []
@@ -131,9 +131,7 @@ def train(model, input_channel, optimizers, criterion, components, train_loader,
         
         meta_model = get_model(args, num_classes = num_classes, input_channel = input_channel)
         meta_model.load_state_dict(model.state_dict())
-        if use_CUDA:
-            meta_model = meta_model.cuda()
-
+        meta_model = meta_model.to(device)
         
         val_input, val_label, iter_val_loader = get_val_samples(iter_val_loader, val_loader)
         input = to_var(input, requires_grad = False)

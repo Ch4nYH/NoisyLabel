@@ -6,9 +6,8 @@ import torchvision
 from torch.autograd import Variable
 import itertools
 
-def to_var(x, requires_grad=True):
-    if torch.cuda.is_available():
-        x = x.cuda()
+def to_var(x, device, requires_grad=True):
+    x = x.to(device)
     return Variable(x, requires_grad=requires_grad)
 
 class MetaModule(nn.Module):
