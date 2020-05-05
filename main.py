@@ -23,12 +23,6 @@ def main():
     torch.manual_seed(args.seed)
     criterion = nn.CrossEntropyLoss()
     print(args)
-    
-    if len(args.gpu) > 0:
-        os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
-        use_CUDA = True
-    else:
-        use_CUDA = False
 
     cudnn.benchmark = True
 
