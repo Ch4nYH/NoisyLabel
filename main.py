@@ -77,7 +77,10 @@ def main():
 
     model = get_model(args, input_channel = input_channel, num_classes=args.num_classes)
     device = xm.xla_device()
+    print("Successfully get device. ")
     model = model.to(device)
+    print("Successfully get model. ")
+    raise NotADirectoryError
     
     optimizers = get_optimizers(model, args.components, args.lr, args.gamma)
        
