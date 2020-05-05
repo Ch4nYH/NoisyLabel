@@ -3,7 +3,6 @@ import numpy as np
 
 import torch
 import torch.nn as nn
-import torch.backends.cudnn as cudnn
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
 from losses import sample_wise_kl
@@ -16,6 +15,14 @@ from tensorboardX import SummaryWriter
 from torchvision import transforms
 from collections import defaultdict
 import copy
+import torch_xla
+import torch_xla.debug.metrics as met
+import torch_xla.distributed.data_parallel as dp
+import torch_xla.distributed.parallel_loader as pl
+import torch_xla.utils.utils as xu
+import torch_xla.core.xla_model as xm
+import torch_xla.distributed.xla_multiprocessing as xmp
+import torch_xla.test.test_utils as test_utils
 args = None
 def main():
     global args
@@ -24,7 +31,6 @@ def main():
     criterion = nn.CrossEntropyLoss()
     print(args)
 
-    cudnn.benchmark = True
 
     data_transforms = {
             'train': transforms.Compose([
@@ -53,11 +59,25 @@ def main():
         input_channel = 3
     else:
         raise NotImplementedError
-
-    train_loader = DataLoader(train_dataset, batch_size = args.batch_size, num_workers = args.num_workers)
-    val_loader = DataLoader(val_dataset, batch_size = args.batch_size, num_workers = args.num_workers)
+    
+    train_sampler = None
+    if xm.xrt_world_size() > 1:
+        train_sampler = torch.utils.data.distributed.DistributedSampler(
+            train_dataset, 
+            num_replicas = xm.xrt_world_size(),
+            rank = xm.get_ordinal(),
+            shuffle = True
+        )
+    
+    train_loader = DataLoader(train_dataset, batch_size = args.batch_size, num_workers = args.num_workers,
+                              sampler = train_sampler, 
+                              shuffle = False if train_sampler else True)
+    val_loader = DataLoader(val_dataset, batch_size = args.batch_size, num_workers = args.num_workers,
+                            shuffle = False)
 
     model = get_model(args, input_channel = input_channel, num_classes=args.num_classes)
+    device = xm.xla_device()
+    model = model.to(device)
     
     optimizers = get_optimizers(model, args.components, args.lr, args.gamma)
        
@@ -70,8 +90,10 @@ def main():
 
     best_prec = 0
     for epoch in range(args.epochs):
-        train(model, input_channel, optimizers, criterion, args.components, train_loader, val_loader, epoch, writer, args, clamp = args.clamp, num_classes = args.num_classes)
-        loss, prec = val(model, val_loader, criterion, epoch, writer)
+        para_train_loader = pl.ParallelLoader(train_loader, [device])
+        para_test_loader = pl.ParallelLoader(test_loader, [device])
+        train(model, input_channel, optimizers, criterion, args.components, train_loader.per_device_loader(device), val_loader.per_device_loader(device), epoch, writer, args, clamp = args.clamp, num_classes = args.num_classes)
+        loss, prec = val(model, val_loader.per_device_loader(device), criterion, epoch, writer)
         torch.save(model, os.path.join(save_path, 'checkpoint.pth.tar'))
         if prec > best_prec:
             torch.save(model, os.path.join(save_path, 'model_best.pth.tar'))
@@ -193,7 +215,7 @@ def train(model, input_channel, optimizers, criterion, components, train_loader,
             loss[c] = (meta_criterion(output, label) * w[c]).sum()
             optimizers[c].zero_grad()
             loss[c].backward(retain_graph = True)
-            optimizers[c].step()
+            xm.optimizer_step(optimizers[c])
             losses_logger[c].update(loss[c])
 
         top1 = accuracy(prediction, label)
