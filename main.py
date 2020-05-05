@@ -124,7 +124,8 @@ def train(model, input_channel, optimizers, criterion, components, train_loader,
         w[c] = None
         w_logger[c] = WLogger()
         losses_logger[c] = ScalarLogger(prefix = 'loss')
-         
+    
+    count = 0
     for (input, label, real) in train_loader:
         noisy_labels.append(label)
         true_labels.append(real)
@@ -221,6 +222,10 @@ def train(model, input_channel, optimizers, criterion, components, train_loader,
 
         top1 = accuracy(prediction, label)
         accuracy_logger.update(top1)
+        
+        count = count + 1
+        if count % 10 == 0:
+            print(count, accuracy_logger.avg())
         
     noisy_labels = torch.cat(noisy_labels)
     true_labels = torch.cat(true_labels)
