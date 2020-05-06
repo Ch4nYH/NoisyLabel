@@ -21,6 +21,7 @@ from __future__ import print_function
 import argparse
 import os
 import sys
+import numpy as np
 
 import tensorflow as tf
 
@@ -36,11 +37,28 @@ def _int64_feature(value):
 def _bytes_feature(value):
   return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
 
+def make_symmetric_random_labels(labels, seed = 1, num_classes = 10, percent = 0.5):
 
+    noisy_labels = np.zeros_like(labels)
+
+    for i in range(num_classes):
+        np.random.seed(seed + i)
+        all_length = np.sum(labels == i)
+        noisy_length = int(num_classes * percent / (num_classes - 1) * all_length)
+        new_label = [i] * (all_length - noisy_length) + list(np.random.randint(0, 9, size = noisy_length))
+        np.random.seed(seed + i)
+        noisy_labels[labels == i] = np.random.permutation(np.array(new_label))
+
+    return noisy_labels
+  
 def convert_to(data_set, name):
   """Converts a dataset to tfrecords."""
   images = data_set.images
   labels = data_set.labels
+  
+  # Begin create noisy label
+  
+  labels = make_symmetric_random_labels(labels)
   num_examples = data_set.num_examples
 
   if images.shape[0] != num_examples:
