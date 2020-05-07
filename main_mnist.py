@@ -134,9 +134,9 @@ def get_model(features, labels, mode, params):
 				decay_steps=100000,
 				decay_rate=0.96)
 		optimizer = tf.train.GradientDescentOptimizer(learning_rate=learning_rate)
-  		update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
-        with tf.control_dependencies(update_ops):
-        	train_op = optimizer.minimize(loss, global_step=tf.train.get_global_step())
+		update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
+		with tf.control_dependencies(update_ops):
+			train_op = optimizer.minimize(loss, global_step=tf.train.get_global_step())
 		if FLAGS.use_tpu:
 			optimizer = tf.tpu.CrossShardOptimizer(optimizer)
 		return tf.estimator.tpu.TPUEstimatorSpec(
