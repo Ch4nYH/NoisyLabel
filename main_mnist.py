@@ -125,8 +125,12 @@ def model_fn(features, labels, mode, params):
         }
     accuracy = tf.metrics.accuracy(labels=labels,
             predictions=predictions['class_ids'])
-
-    
+    tf.summary.scalar("accuracy", accuracy[1])
+    tf.summary.scalar("loss", loss)
+    summary_hook = tf.train.SummarySaverHook(
+        500,
+        output_dir='log/',
+        summary_op=tf.summary.merge_all())
     
     if mode == tf.estimator.ModeKeys.PREDICT:
         
@@ -151,7 +155,7 @@ def model_fn(features, labels, mode, params):
                 mode=mode,
                 loss=loss,
                 train_op=optimizer.minimize(loss, tf.train.get_global_step()),
-                training_hooks = [logging_hook])
+                training_hooks = [summary_hook])
 
     if mode == tf.estimator.ModeKeys.EVAL:
         return tf.estimator.tpu.TPUEstimatorSpec(
