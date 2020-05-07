@@ -50,7 +50,7 @@ def metric_fn(labels, logits):
 			labels=labels, predictions=tf.argmax(logits, axis=1))
 	return {"accuracy": accuracy}
 
-def get_model(features, labels, mode, params):
+def model_fn(features, labels, mode, params):
 	image = features / 255.
 	act = tf.nn.leaky_relu
 	if mode == tf.estimator.ModeKeys.TRAIN:
