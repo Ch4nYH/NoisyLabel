@@ -51,14 +51,15 @@ def make_symmetric_random_labels(labels, seed = 1, num_classes = 10, percent = 0
 
     return noisy_labels
   
-def convert_to(data_set, name):
+def convert_to(data_set, name, noisy = False):
   """Converts a dataset to tfrecords."""
   images = data_set.images
   labels = data_set.labels
   
   # Begin create noisy label
   
-  labels = make_symmetric_random_labels(labels)
+  if noisy:
+    labels = make_symmetric_random_labels(labels)
   num_examples = data_set.num_examples
 
   if images.shape[0] != num_examples:
@@ -93,7 +94,7 @@ def main(unused_argv):
                                    validation_size=FLAGS.validation_size)
 
   # Convert to Examples and write the result to TFRecords.
-  convert_to(data_sets.train, 'train')
+  convert_to(data_sets.train, 'train', noisy = True)
   convert_to(data_sets.validation, 'validation')
   convert_to(data_sets.test, 'test')
 

@@ -1,36 +1,11 @@
-# Copyright 2017 The TensorFlow Authors. All Rights Reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# ==============================================================================
-"""MNIST model training using TPUs.
-
-This program demonstrates training of the convolutional neural network model
-defined in mnist.py on Google Cloud TPUs (https://cloud.google.com/tpu/).
-
-If you are not interested in TPUs, you should ignore this file.
-"""
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
-import os
-
+import tensorflow.compat.v1 as tf
+import numpy as np
 from absl import app
 from absl import flags
 from absl import logging
-import tensorflow.compat.v1 as tf
 
-# Cloud TPU Cluster Resolver flags
+import os
+
 flags.DEFINE_string(
 		"tpu", default=None,
 		help="The Cloud TPU to use for training. This should be either the name "
@@ -58,14 +33,16 @@ flags.DEFINE_integer("train_steps", 1000, "Total number of training steps.")
 flags.DEFINE_integer("eval_steps", 0,
 										 "Total number of evaluation steps. If `0`, evaluation "
 										 "after training is skipped.")
-flags.DEFINE_float("learning_rate", 0.05, "Learning rate.")
+flags.DEFINE_float("learning_rate", 0.001, "Learning rate.")
 
 flags.DEFINE_bool("use_tpu", True, "Use TPUs rather than plain CPUs")
 flags.DEFINE_bool("enable_predict", True, "Do some predictions at the end")
-flags.DEFINE_integer("iterations", 50,  "Number of iterations per TPU training loop.")
+flags.DEFINE_integer("iterations", 50,
+										 "Number of iterations per TPU training loop.")
 flags.DEFINE_integer("num_shards", 8, "Number of shards (TPU chips).")
 
 FLAGS = flags.FLAGS
+num_classes = 10
 
 
 def metric_fn(labels, logits):
@@ -73,34 +50,73 @@ def metric_fn(labels, logits):
 			labels=labels, predictions=tf.argmax(logits, axis=1))
 	return {"accuracy": accuracy}
 
-
-def model_fn(features, labels, mode, params):
-	"""model_fn constructs the ML model used to predict handwritten digits."""
-
-	del params
-
-	# Normalize from [0, 255] to [0.0, 1.0]
+def get_model(features, labels, mode, params):
 	image = features / 255.
+	act = tf.nn.leaky_relu
+	if mode == tf.estimator.ModeKeys.TRAIN:
+		training = True
+	else:
+		training = False 
+	conv1 = tf.layers.Conv2D(filters = 32,
+						 kernel_size = 3,
+						 padding = "same")
+	conv2 = tf.layers.Conv2D(filters = 128,
+						kernel_size = 3,
+						padding = "same")
+	conv3 = tf.layers.Conv2D(filters = 128,
+						kernel_size = 3,
+						padding = "same")
+	conv4 = tf.layers.Conv2D(filters = 256,
+						kernel_size = 3,
+						padding = "same")
+	conv5 = tf.layers.Conv2D(filters = 256,
+						kernel_size = 3,
+						padding = "same")
+	conv6 = tf.layers.Conv2D(filters = 256,
+						kernel_size = 3,
+						padding = "same")
+	conv7 = tf.layers.Conv2D(filters = 512,
+						kernel_size = 3,
+						padding = "same")
+	conv8 = tf.layers.Conv2D(filters = 256,
+						kernel_size = 3,
+						padding = "same")
+	conv9 = tf.layers.Conv2D(filters = 128,
+						kernel_size = 3,
+						padding = "same")
+	bn1 = tf.layers.BatcnNormalization()
+	bn2 = tf.layers.BatcnNormalization()
+	bn3 = tf.layers.BatcnNormalization()
+	bn4 = tf.layers.BatcnNormalization()
+	bn5 = tf.layers.BatcnNormalization()
+	bn6 = tf.layers.BatcnNormalization()
+	bn7 = tf.layers.BatcnNormalization()
+	bn8 = tf.layers.BatcnNormalization()
+	bn9 = tf.layers.BatcnNormalization()
 
-	y = tf.layers.Conv2D(filters=32,
-											 kernel_size=5,
-											 padding="same",
-											 activation="relu")(image)
-	y = tf.layers.MaxPooling2D(pool_size=(2, 2),
-														 strides=(2, 2),
-														 padding="same")(y)
-	y = tf.layers.Conv2D(filters=32,
-											 kernel_size=5,
-											 padding="same",
-											 activation="relu")(y)
-	y = tf.layers.MaxPooling2D(pool_size=(2, 2),
-														 strides=(2, 2),
-														 padding="same")(y)
-	y = tf.layers.Flatten()(y)
-	y = tf.layers.Dense(1024, activation="relu")(y)
-	y = tf.layers.Dropout(0.4)(y, training=(mode == tf.estimator.ModeKeys.TRAIN))
+	f1 = act(bn1(conv1(features), training = training), alpha = 0.1)
+	f2 = act(bn2(conv2(f1), training = training), alpha = 0.1)
+	f3 = act(bn3(conv3(f2), training = training), alpha = 0.1)
+	f3 = tf.layers.MaxPooling2D(pool_size=(2, 2), strides=(2, 2), padding="same")(f3)
+	f3 = tf.layers.Dropout(0.25)(f3, training=(mode == tf.estimator.ModeKeys.TRAIN))
+	f4 = act(bn4(conv4(f3), training = training), alpha = 0.1)
+	f5 = act(bn5(conv5(f4), training = training), alpha = 0.1)
+	f6 = act(bn6(conv6(f5), training = training), alpha = 0.1)
+	f6 = tf.layers.MaxPooling2D(pool_size=(2, 2), strides=(2, 2), padding="same")(f6)
+	f6 = tf.layers.Dropout(0.25)(f6, training=(mode == tf.estimator.ModeKeys.TRAIN))
+	f7 = act(bn7(conv7(f6), training = training), alpha = 0.1)
+	f8 = act(bn8(conv8(f7), training = training), alpha = 0.1)
+	f9 = act(bn9(conv9(f8), training = training), alpha = 0.1)
+	inputSize = np.array(f9.shape[0, 1])
+	outputSize = np.array([1,1])
+	strideSize = np.floor(inputSize/outputSize).astype(np.int32)
 
-	logits = tf.layers.Dense(10)(y)
+	kernelSize = inputSize - (outputSize-1) * strideSize
+
+	flatten = tf.layers.Flatten()(tf.layers.AvgPooling2D(pool_size=kernelSize,
+														 strides=strideSize,
+														 padding="same")(f9))
+	logits = tf.layers.Dense(num_classes)(flatten)
 
 	if mode == tf.estimator.ModeKeys.PREDICT:
 		predictions = {
@@ -113,7 +129,7 @@ def model_fn(features, labels, mode, params):
 
 	if mode == tf.estimator.ModeKeys.TRAIN:
 		learning_rate = tf.train.exponential_decay(
-				FLAGS.learning_rate,
+				params['learning_rate'],
 				tf.train.get_global_step(),
 				decay_steps=100000,
 				decay_rate=0.96)
@@ -170,7 +186,6 @@ def predict_input_fn(params):
 
 	# Take out top 10 samples from test data to make the predictions.
 	return dataset(records_file).take(10).batch(batch_size)
-
 
 def main(argv):
 	del argv  # Unused.
