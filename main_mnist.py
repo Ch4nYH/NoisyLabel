@@ -107,7 +107,7 @@ def model_fn(features, labels, mode, params):
 	f7 = act(bn7(conv7(f6), training = training), alpha = 0.1)
 	f8 = act(bn8(conv8(f7), training = training), alpha = 0.1)
 	f9 = act(bn9(conv9(f8), training = training), alpha = 0.1)
-	print(tf.shape(f9))
+	logging.info(f9.get_shape())
 	inputSize = np.array(f9.shape[0, 1])
 	outputSize = np.array([1,1])
 	strideSize = np.floor(inputSize/outputSize).astype(np.int32)
