@@ -143,9 +143,7 @@ def model_fn(features, labels, mode, params):
 
         accuracy = tf.metrics.accuracy(labels=labels,
             predictions=predictions['class_ids'])
-        tensors_to_log = {'batch_accuracy': accuracy[1],
-            'logits': logits,
-            'label': labels}
+        tensors_to_log = {'batch_accuracy': accuracy[1]}
         logging_hook = tf.train.LoggingTensorHook(tensors=tensors_to_log, every_n_iter=1000)
         return tf.estimator.tpu.TPUEstimatorSpec(
                 mode=mode,
