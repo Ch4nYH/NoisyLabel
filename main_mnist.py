@@ -142,15 +142,15 @@ def model_fn(features, labels, mode, params):
 			train_op = optimizer.minimize(loss, global_step=tf.train.get_global_step())
 		if FLAGS.use_tpu:
 			optimizer = tf.tpu.CrossShardOptimizer(optimizer)
-		#tensors_to_log = {'batch_accuracy': accuracy[1],
-        #                  'logits': logits,
-        #                  'label': labels}
-		#logging_hook = tf.train.LoggingTensorHook(tensors=tensors_to_log, every_n_iter=1000)
+		tensors_to_log = {'batch_accuracy': accuracy[1],
+                          'logits': logits,
+                          'label': labels}
+		logging_hook = tf.train.LoggingTensorHook(tensors=tensors_to_log, every_n_iter=1000)
 		return tf.estimator.tpu.TPUEstimatorSpec(
 				mode=mode,
 				loss=loss,
-				train_op=optimizer.minimize(loss, tf.train.get_global_step()))
-    			#training_hooks=[logging_hook])
+				train_op=optimizer.minimize(loss, tf.train.get_global_step()),
+    			training_hooks = [logging_hook])
 
 	if mode == tf.estimator.ModeKeys.EVAL:
 		return tf.estimator.tpu.TPUEstimatorSpec(
