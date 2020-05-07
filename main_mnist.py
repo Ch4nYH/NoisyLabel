@@ -229,8 +229,8 @@ def main(argv):
     # --eval_steps * --batch_size.
     # So if you change --batch_size then change --eval_steps too.
     if FLAGS.eval_steps:
-        loss, eval_metrics = estimator.evaluate(input_fn=eval_input_fn, steps=FLAGS.eval_steps)
-        print(eval_metrics)
+        a = estimator.evaluate(input_fn=eval_input_fn, steps=FLAGS.eval_steps)
+        print(a)
     # Run prediction on top few samples of test data.
     if FLAGS.enable_predict:
         predictions = estimator.predict(input_fn=predict_input_fn)
