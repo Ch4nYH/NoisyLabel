@@ -140,6 +140,7 @@ def model_fn(features, labels, mode, params):
 			train_op = optimizer.minimize(loss, global_step=tf.train.get_global_step())
 		if FLAGS.use_tpu:
 			optimizer = tf.tpu.CrossShardOptimizer(optimizer)
+		
    		accuracy = tf.metrics.accuracy(labels=labels,
                                    predictions=predictions['class_ids'])
 		tensors_to_log = {'batch_accuracy': accuracy[1],
