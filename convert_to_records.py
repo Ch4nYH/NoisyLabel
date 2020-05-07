@@ -27,9 +27,6 @@ import tensorflow as tf
 
 from tensorflow.contrib.learn.python.learn.datasets import mnist
 
-FLAGS = None
-
-
 def _int64_feature(value):
   return tf.train.Feature(int64_list=tf.train.Int64List(value=[value]))
 
