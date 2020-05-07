@@ -124,7 +124,7 @@ def model_fn(features, labels, mode, params):
                 "probabilities": tf.nn.softmax(logits),
         }
     accuracy = tf.metrics.accuracy(labels=labels,
-            predictions=predictions['class_ids'])
+            predictions=predictions['class_ids'], name = "accuracy")
 
     
     
@@ -226,8 +226,11 @@ def main(argv):
             predict_batch_size=FLAGS.batch_size,
             params={"data_dir": FLAGS.data_dir},
             config=run_config)
+    tensors_to_log = {"accuracy": "accuracy"}
+    logging_hook = tf.train.LoggingTensorHook(tensors=tensors_to_log, every_n_iter=500)
+
     # TPUEstimator.train *requires* a max_steps argument.
-    estimator.train(input_fn=train_input_fn, max_steps=FLAGS.train_steps)
+    estimator.train(input_fn=train_input_fn, max_steps=FLAGS.train_steps, hooks=[logging_hook])
     # TPUEstimator.evaluate *requires* a steps argument.
     # Note that the number of examples used during evaluation is
     # --eval_steps * --batch_size.
