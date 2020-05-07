@@ -190,7 +190,7 @@ def predict_input_fn(params):
 	records_file = os.path.join(params["data_dir"], "test.tfrecords")
 
 	# Take out top 10 samples from test data to make the predictions.
-	return dataset(records_file).take(10).batch(batch_size)
+	return dataset(records_file).take(100).batch(batch_size)
 
 def main(argv):
 	del argv  # Unused.
