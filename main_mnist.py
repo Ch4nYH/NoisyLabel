@@ -115,7 +115,7 @@ def model_fn(features, labels, mode, params):
 
 	kernelSize = inputSize - (outputSize-1) * strideSize
 
-	flatten = tf.layers.Flatten()(tf.layers.AvgPooling2D(pool_size=kernelSize,
+	flatten = tf.layers.Flatten()(tf.layers.AveragePooling2D(pool_size=kernelSize,
 														 strides=strideSize,
 														 padding="same")(f9))
 	logits = tf.layers.Dense(num_classes)(flatten)
