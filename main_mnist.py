@@ -132,12 +132,6 @@ def model_fn(features, labels, mode, params):
         return tf.estimator.tpu.TPUEstimatorSpec(mode, predictions=predictions)
 
     loss = tf.losses.sparse_softmax_cross_entropy(labels=labels, logits=logits)
-    tf.summary.scalar("accuracy", accuracy[1])
-    tf.summary.scalar("loss", loss)
-    summary_hook = tf.train.SummarySaverHook(
-        500,
-        output_dir='log/',
-        summary_op=tf.summary.merge_all())
     if mode == tf.estimator.ModeKeys.TRAIN:
         learning_rate = tf.train.exponential_decay(
                 FLAGS.learning_rate,
@@ -154,8 +148,7 @@ def model_fn(features, labels, mode, params):
         return tf.estimator.tpu.TPUEstimatorSpec(
                 mode=mode,
                 loss=loss,
-                train_op=optimizer.minimize(loss, tf.train.get_global_step()),
-                training_hooks = [summary_hook])
+                train_op=optimizer.minimize(loss, tf.train.get_global_step()))
 
     if mode == tf.estimator.ModeKeys.EVAL:
         return tf.estimator.tpu.TPUEstimatorSpec(
