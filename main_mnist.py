@@ -119,16 +119,17 @@ def model_fn(features, labels, mode, params):
 														 strides=strideSize,
 														 padding="same")(f9))
 	logits = tf.layers.Dense(num_classes)(flatten)
-
-	if mode == tf.estimator.ModeKeys.PREDICT:
-		predictions = {
+	predictions = {
 				"class_ids": tf.argmax(logits, axis=1),
 				"probabilities": tf.nn.softmax(logits),
 		}
+	if mode == tf.estimator.ModeKeys.PREDICT:
+		
 		return tf.estimator.tpu.TPUEstimatorSpec(mode, predictions=predictions)
 
 	loss = tf.losses.sparse_softmax_cross_entropy(labels=labels, logits=logits)
-
+	accuracy = tf.metrics.accuracy(labels=labels,
+                                   predictions=predictions)
 	if mode == tf.estimator.ModeKeys.TRAIN:
 		learning_rate = tf.train.exponential_decay(
 				FLAGS.learning_rate,
@@ -141,10 +142,15 @@ def model_fn(features, labels, mode, params):
 			train_op = optimizer.minimize(loss, global_step=tf.train.get_global_step())
 		if FLAGS.use_tpu:
 			optimizer = tf.tpu.CrossShardOptimizer(optimizer)
+		tensors_to_log = {'batch_accuracy': accuracy[1],
+                          'logits': logits,
+                          'label': labels}
+		logging_hook = tf.train.LoggingTensorHook(tensors=tensors_to_log, every_n_iter=1000)
 		return tf.estimator.tpu.TPUEstimatorSpec(
 				mode=mode,
 				loss=loss,
-				train_op=optimizer.minimize(loss, tf.train.get_global_step()))
+				train_op=optimizer.minimize(loss, tf.train.get_global_step()),
+    			training_hooks=[logging_hook])
 
 	if mode == tf.estimator.ModeKeys.EVAL:
 		return tf.estimator.tpu.TPUEstimatorSpec(
@@ -225,8 +231,8 @@ def main(argv):
 	# --eval_steps * --batch_size.
 	# So if you change --batch_size then change --eval_steps too.
 	if FLAGS.eval_steps:
-		estimator.evaluate(input_fn=eval_input_fn, steps=FLAGS.eval_steps)
-
+		loss, eval_metrics = estimator.evaluate(input_fn=eval_input_fn, steps=FLAGS.eval_steps)
+		print(eval_metrics)
 	# Run prediction on top few samples of test data.
 	if FLAGS.enable_predict:
 		predictions = estimator.predict(input_fn=predict_input_fn)
