@@ -124,7 +124,7 @@ def model_fn(features, labels, mode, params):
                 "probabilities": tf.nn.softmax(logits),
         }
     accuracy = tf.metrics.accuracy(labels=labels,
-            predictions=predictions['class_ids'], name = "accuracy")
+            predictions=predictions['class_ids'])
 
     
     
@@ -133,8 +133,7 @@ def model_fn(features, labels, mode, params):
         return tf.estimator.tpu.TPUEstimatorSpec(mode, predictions=predictions)
 
     loss = tf.losses.sparse_softmax_cross_entropy(labels=labels, logits=logits)
-    #logging_hook = tf.train.LoggingTensorHook({"loss":loss}, every_n_iter=10)
-    
+    logging_hook = tf.train.LoggingTensorHook({"loss":loss}, every_n_iter = 500)
     if mode == tf.estimator.ModeKeys.TRAIN:
         learning_rate = tf.train.exponential_decay(
                 FLAGS.learning_rate,
@@ -151,8 +150,8 @@ def model_fn(features, labels, mode, params):
         return tf.estimator.tpu.TPUEstimatorSpec(
                 mode=mode,
                 loss=loss,
-                train_op=optimizer.minimize(loss, tf.train.get_global_step()))
-                #raining_hooks = [logging_hook])
+                train_op=optimizer.minimize(loss, tf.train.get_global_step()),
+                training_hooks = [logging_hook])
 
     if mode == tf.estimator.ModeKeys.EVAL:
         return tf.estimator.tpu.TPUEstimatorSpec(
@@ -226,11 +225,8 @@ def main(argv):
             predict_batch_size=FLAGS.batch_size,
             params={"data_dir": FLAGS.data_dir},
             config=run_config)
-    tensors_to_log = {"accuracy": "accuracy"}
-    logging_hook = tf.train.LoggingTensorHook(tensors=tensors_to_log, every_n_iter=500)
-
     # TPUEstimator.train *requires* a max_steps argument.
-    estimator.train(input_fn=train_input_fn, max_steps=FLAGS.train_steps, hooks=[logging_hook])
+    estimator.train(input_fn=train_input_fn, max_steps=FLAGS.train_steps)
     # TPUEstimator.evaluate *requires* a steps argument.
     # Note that the number of examples used during evaluation is
     # --eval_steps * --batch_size.
