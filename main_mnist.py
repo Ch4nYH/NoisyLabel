@@ -128,8 +128,6 @@ def model_fn(features, labels, mode, params):
 		return tf.estimator.tpu.TPUEstimatorSpec(mode, predictions=predictions)
 
 	loss = tf.losses.sparse_softmax_cross_entropy(labels=labels, logits=logits)
-	accuracy = tf.metrics.accuracy(labels=labels,
-                                   predictions=predictions['class_ids'])
 	if mode == tf.estimator.ModeKeys.TRAIN:
 		learning_rate = tf.train.exponential_decay(
 				FLAGS.learning_rate,
@@ -142,6 +140,8 @@ def model_fn(features, labels, mode, params):
 			train_op = optimizer.minimize(loss, global_step=tf.train.get_global_step())
 		if FLAGS.use_tpu:
 			optimizer = tf.tpu.CrossShardOptimizer(optimizer)
+   		accuracy = tf.metrics.accuracy(labels=labels,
+                                   predictions=predictions['class_ids'])
 		tensors_to_log = {'batch_accuracy': accuracy[1],
                           'logits': logits,
                           'label': labels}
