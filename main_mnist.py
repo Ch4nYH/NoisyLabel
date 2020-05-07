@@ -125,19 +125,19 @@ def model_fn(features, labels, mode, params):
         }
     accuracy = tf.metrics.accuracy(labels=labels,
             predictions=predictions['class_ids'])
-    tf.summary.scalar("accuracy", accuracy[1])
-    tf.summary.scalar("loss", loss)
-    summary_hook = tf.train.SummarySaverHook(
-        500,
-        output_dir='log/',
-        summary_op=tf.summary.merge_all())
+    
     
     if mode == tf.estimator.ModeKeys.PREDICT:
         
         return tf.estimator.tpu.TPUEstimatorSpec(mode, predictions=predictions)
 
     loss = tf.losses.sparse_softmax_cross_entropy(labels=labels, logits=logits)
-    logging_hook = tf.train.LoggingTensorHook({"loss":loss}, every_n_iter = 500)
+    tf.summary.scalar("accuracy", accuracy[1])
+    tf.summary.scalar("loss", loss)
+    summary_hook = tf.train.SummarySaverHook(
+        500,
+        output_dir='log/',
+        summary_op=tf.summary.merge_all())
     if mode == tf.estimator.ModeKeys.TRAIN:
         learning_rate = tf.train.exponential_decay(
                 FLAGS.learning_rate,
