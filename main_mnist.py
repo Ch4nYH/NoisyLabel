@@ -131,7 +131,7 @@ def model_fn(features, labels, mode, params):
 
 	if mode == tf.estimator.ModeKeys.TRAIN:
 		learning_rate = tf.train.exponential_decay(
-				params['learning_rate'],
+				FLAGS.learning_rate,
 				tf.train.get_global_step(),
 				decay_steps=100000,
 				decay_rate=0.96)
