@@ -95,7 +95,7 @@ def main():
 
     model = get_model(args, num_classes, input_channel)
     
-    optimizers = get_optimizers(model, args.lr, args.gamma)
+    optimizers = get_optimizers(model, ['backbone', 'fc'], args.lr, args.gamma)
 
     save_path = os.path.join(args.prefix, args.modeldir)
     if not os.path.exists(save_path):
@@ -107,7 +107,7 @@ def main():
     
     best_prec = 0
     for epoch in range(args.epochs):
-        train(model, input_channel, optimizers, ['fc', 'backbone'], criterion, train_loader, val_loader, epoch, writer, args, use_CUDA = use_CUDA, clamp = args.clamp, num_classes = args.num_classes)
+        train(model, input_channel, optimizers, [ 'backbone', 'fc'], criterion, train_loader, val_loader, epoch, writer, args, use_CUDA = use_CUDA, clamp = args.clamp, num_classes = args.num_classes)
         loss, prec = val(model, val_loader, criterion, epoch, writer, use_CUDA)
         torch.save(model, os.path.join(save_path, 'checkpoint.pth.tar'))
         if prec > best_prec:
