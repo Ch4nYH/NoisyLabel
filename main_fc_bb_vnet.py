@@ -236,7 +236,7 @@ def train(model, vnet, input_channel, optimizers, optimizer_vnet, components, cr
             w_logger[c].update(w[c])
             losses[c] = (loss * w[c]).sum()
             optimizers[c].zero_grad()
-            losses_w2[c].backward(retain_graph = True)
+            losses[c].backward(retain_graph = True)
             optimizers[c].step()
             losses_logger[c].update(losses[c])
 
