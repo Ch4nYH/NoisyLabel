@@ -93,7 +93,7 @@ def main():
     train_loader = DataLoader(train_dataset, batch_size = args.batch_size, num_workers = args.num_workers)
     val_loader = DataLoader(val_dataset, batch_size = args.batch_size, num_workers = args.num_workers)
 
-    model = get_model(args, input_channel = input_channel, num_classes = num_classes)
+    model = get_model(args, num_classes, input_channel)
     
     optimizers = get_optimizers(model, args.lr, args.gamma)
 
@@ -279,7 +279,7 @@ def val(model, val_loader, criterion, epoch, writer, use_CUDA = True):
     print("Validation Epoch: {}, Accuracy: {}, Losses: {}".format(epoch, accuracy_, losses))
     return accuracy_, losses
 
-def get_model(args, num_classes = 10, input_channel = 3):
+def get_model(args, num_classes, input_channel):
     if args.arch == 'default':
         return Model(num_classes, input_channel)
     elif args.arch == 'resnet34':
