@@ -103,7 +103,7 @@ def main():
         
     writer = SummaryWriter(save_path)
     vnet = VNet(1, 100, 2).cuda()
-    optimizer_vnet = torch.optim.Adam(vnet.params(), 1e-3, weight_decay=1e-4)
+    optimizer_vnet = torch.optim.Adam(vnet.parameters(), 1e-3, weight_decay=1e-4)
     
     best_prec = 0
     for epoch in range(args.epochs):
@@ -291,11 +291,11 @@ def get_optimizers(model, components, lr, gamma):
     optimizers = defaultdict()
     opt = torch.optim.Adam
     if 'all' in components:
-        optimizers['all'] = opt(model.parameters(), lr = args.lr)
+        optimizers['all'] = opt(model.parameters(), lr = lr)
     if 'fc' in components:
-        optimizers['fc'] = opt(model.fc.parameters(), lr = args.lr * args.gamma)
+        optimizers['fc'] = opt(model.fc.parameters(), lr = lr * gamma)
     if 'backbone' in components:
-        optimizers['backbone'] = opt(model.backbone.parameters(), lr = args.lr * args.gamma)
+        optimizers['backbone'] = opt(model.backbone.parameters(), lr = lr * gamma)
     return optimizers
 
 def adjust_learning_rate(optimizers, lr, gamma, epoch, dynamic_gamma = False):
