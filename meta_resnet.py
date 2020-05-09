@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from meta_models import MetaModule, MetaConv2d, MetaBatchNorm2d, MetaLinear, MetaSequential
 def conv3x3(in_planes, out_planes, stride=1, groups=1, dilation=1):
     """3x3 convolution with padding"""
