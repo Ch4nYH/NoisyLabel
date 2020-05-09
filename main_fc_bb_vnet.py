@@ -175,7 +175,7 @@ def train(model, vnet, input_channel, optimizers, optimizer_vnet, components, cr
         # Backbone Grads
         meta_model.backbone.update_params(0.001, source_params = grads_backbone)
         meta_val_feature = torch.flatten(meta_model.backbone(val_input), 1)
-        meta_val_output = meta_model.fc(val_input)
+        meta_val_output = meta_model.fc(meta_val_feature)
         meta_val_loss = meta_criterion(meta_val_output, val_label).sum()
         
         ''' TODO: temorarily remove 
