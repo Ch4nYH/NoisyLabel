@@ -93,7 +93,7 @@ def main():
     train_loader = DataLoader(train_dataset, batch_size = args.batch_size, num_workers = args.num_workers)
     val_loader = DataLoader(val_dataset, batch_size = args.batch_size, num_workers = args.num_workers)
 
-    model = get_model(args, input_channel = input_channel, num_classes=args.num_classes)
+    model = get_model(args, input_channel = input_channel, num_classes = num_classes)
     
     optimizers = get_optimizers(model, args.lr, args.gamma)
 
