@@ -22,7 +22,7 @@ args = None
 def get_args():
     parser = argparse.ArgumentParser(description='RL')
     ##### 
-    parser.add_argument('-l', '--lr', type=float, default = 1e-1 )
+    parser.add_argument('-l', '--lr', type=float, default = 1e-3 )
     parser.add_argument('-d', '--dataset', type=str, default = 'cifar10' )
     parser.add_argument('-g', '--gpu', type=str, default = "" )
     parser.add_argument('-m', '--modeldir', type=str)
@@ -113,7 +113,7 @@ def main():
             torch.save(model, os.path.join(save_path, 'model_best.pth.tar'))
             best_prec = prec
         
-        #adjust_learning_rate(optimizers, args.lr, args.gamma, epoch, True)
+        adjust_learning_rate(optimizer, args.lr, epoch)
 
 
 def train(model, input_channel, optimizer, criterion, train_loader, val_loader, epoch, writer, args, use_CUDA = True, clamp = False, num_classes = 10):
@@ -198,14 +198,10 @@ def get_optimizers(model, components, lr, gamma):
         optimizers['backbone'] = opt(model.backbone.parameters(), lr = lr * gamma)
     return optimizers
 
-def adjust_learning_rate(optimizers, lr, gamma, epoch, dynamic_gamma = False):
-    gamma_ = gamma / (epoch + 1) if dynamic_gamma else gamma
-    for c in optimizers.keys():
-        if c == 'all':
-            pass # TODO: decay
-        else:
-            for param_group in optimizers[c].param_groups:
-                param_group['lr'] = lr * gamma_
+def adjust_learning_rate(optimizer, lr, epoch):
+    decay = int(epoch / 20)
+    for param_group in optimizer.param_groups:
+        param_group['lr'] = lr * np.pow(0.1, decay)
             
                 
 if __name__ == '__main__':
