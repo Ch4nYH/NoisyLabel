@@ -18,6 +18,7 @@ from collections import defaultdict
 import copy
 import argparse
 args = None
+
 def get_args():
     parser = argparse.ArgumentParser(description='RL')
     ##### 
@@ -95,19 +96,17 @@ def main():
 
     model = get_model(args, num_classes, input_channel)
     
-    optimizers = get_optimizers(model, ['backbone', 'fc'], args.lr, args.gamma)
+    optimizer = torch.optim.SGD(model.parameters(), args.lr)
 
     save_path = os.path.join(args.prefix, args.modeldir)
     if not os.path.exists(save_path):
         os.mkdir(save_path)
         
     writer = SummaryWriter(save_path)
-    vnet = VNet(1, 100, 2).cuda()
-    optimizer_vnet = torch.optim.Adam(vnet.parameters(), 1e-3, weight_decay=1e-4)
     
     best_prec = 0
     for epoch in range(args.epochs):
-        train(model, vnet, input_channel, optimizers, optimizer_vnet, ['backbone', 'fc'], criterion, train_loader, val_loader, epoch, writer, args, use_CUDA = use_CUDA, clamp = args.clamp, num_classes = num_classes)
+        train(model, input_channel, optimizer, criterion, train_loader, val_loader, epoch, writer, args, use_CUDA = use_CUDA, clamp = args.clamp, num_classes = num_classes)
         loss, prec = val(model, val_loader, criterion, epoch, writer, use_CUDA)
         torch.save(model, os.path.join(save_path, 'checkpoint.pth.tar'))
         if prec > best_prec:
@@ -117,7 +116,7 @@ def main():
         #adjust_learning_rate(optimizers, args.lr, args.gamma, epoch, True)
 
 
-def train(model, vnet, input_channel, optimizers, optimizer_vnet, components, criterion, train_loader, val_loader, epoch, writer, args, use_CUDA = True, clamp = False, num_classes = 10):
+def train(model, input_channel, optimizer, criterion, train_loader, val_loader, epoch, writer, args, use_CUDA = True, clamp = False, num_classes = 10):
     model.train()
     accs = []
     losses_w1 = []
@@ -132,114 +131,19 @@ def train(model, vnet, input_channel, optimizers, optimizer_vnet, components, cr
     w_logger = defaultdict()
     losses_logger = defaultdict()
     accuracy_logger = ScalarLogger(prefix = 'accuracy')
-    for c in components:
-        w[c] = None
-        w_logger[c] = WLogger()
-        losses_logger[c] = ScalarLogger(prefix = 'loss')
          
     for (input, label, real) in train_loader:
         noisy_labels.append(label)
         true_labels.append(real)
-        
-        meta_model = get_model(args, num_classes = num_classes, input_channel = input_channel)
-        meta_model.load_state_dict(model.state_dict())
-        if use_CUDA:
-            meta_model = meta_model.cuda()
-
-        
-        val_input, val_label, iter_val_loader = get_val_samples(iter_val_loader, val_loader)
         input = to_var(input, requires_grad = False)
         label = to_var(label, requires_grad = False).long()
-        val_input = to_var(val_input, requires_grad = False)
-        val_label = to_var(val_label, requires_grad = False).long()
-        
-        meta_output = meta_model(input)
-        cost = meta_criterion(meta_output, label) 
-        #eps = to_var(torch.zeros(cost.size()))
-        cost_v = torch.reshape(cost, (len(cost), 1))
-        eps = vnet(cost_v.data) # shape: (N, 2)
-        
-        meta_loss_backbone = (cost * eps[:,0]).sum()
-        meta_loss_fc = (cost * eps[:,1]).sum()
-        meta_model.zero_grad()
-        
-            
-        grads_backbone = torch.autograd.grad(meta_loss_backbone,
-                            (meta_model.backbone.parameters()), 
-                            create_graph=True, 
-                            retain_graph = True)
-        grads_fc       = torch.autograd.grad(meta_loss_fc,       
-                            (meta_model.fc.parameters()),
-                            create_graph=True)
-        
-        # Backbone Grads
-        meta_model.backbone.update_params(0.001, source_params = grads_backbone)
-        meta_val_feature = torch.flatten(meta_model.backbone(val_input), 1)
-        meta_val_output = meta_model.fc(meta_val_feature)
-        meta_val_loss = meta_criterion(meta_val_output, val_label).sum()
-        
-        ''' TODO: temorarily remove 
-        if args.with_kl and args.reg_start <= epoch:
-            train_feature = torch.flatten(meta_model.backbone(input), 1)
-            meta_val_loss -= sample_wise_kl(train_feature, meta_val_feature)
-                    
-        grad_eps = torch.autograd.grad(meta_val_loss, eps, only_inputs = True, retain_graph = True)[0]
-        if clamp:
-            w['backbone'] = torch.clamp(-grad_eps, min = 0)
-        else:
-            w['backbone'] = -grad_eps
-        norm = torch.sum(abs(w['backbone']))
-        w['backbone'] = w['backbone'] / norm
-        '''
-        optimizer_vnet.zero_grad()
-        meta_val_loss.backward(retain_graph = True)
-        optimizer_vnet.step()
-        
-        
-
-        # FC backward
-        meta_model.load_state_dict(model.state_dict())
-        meta_model.fc.update_params(0.001, source_params = grads_fc)
-        meta_val_output = meta_model(val_input)
-        meta_val_loss = meta_criterion(meta_val_output, val_label).sum()
-        '''
-        grad_eps = torch.autograd.grad(meta_val_loss, eps, only_inputs = True, retain_graph = True)[0]
-        
-        if clamp:
-            w['fc'] = torch.clamp(-grad_eps, min = 0)
-        else:
-            w['fc'] = -grad_eps
-        norm = torch.sum(abs(w['fc']))
-        w['fc'] = w['fc'] / norm
-        '''
-        optimizer_vnet.zero_grad()
-        meta_val_loss.backward(retain_graph = True)
-        optimizer_vnet.step()
-        
-        
         index += 1
         output = model(input)
-        losses = defaultdict()
-        loss = meta_criterion(output, label)
-        loss_v = torch.reshape(loss, (len(loss), 1))
-        with torch.no_grad():
-            w_ = vnet(loss_v)
-            if clamp:
-                w_ = torch.clamp(w_, min = 0)
-            for i in range(w_.shape[1]):
-                w_[:, i] = torch.sum(torch.abs(w_[:, i]))
-            w['backbone'] = w_[:, 0]
-            w['fc'] = w_[:, 1]
-        
+        loss = meta_criterion(output, label).sum() / input.shape[0]
         prediction = torch.softmax(output, 1)
-        for c in components:
-            w_logger[c].update(w[c])
-            losses[c] = (loss * w[c]).sum()
-            optimizers[c].zero_grad()
-            losses[c].backward(retain_graph = True)
-            optimizers[c].step()
-            losses_logger[c].update(losses[c])
-
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
         top1 = accuracy(prediction, label)
         accuracy_logger.update(top1)
         
