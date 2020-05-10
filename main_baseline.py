@@ -201,7 +201,7 @@ def get_optimizers(model, components, lr, gamma):
 def adjust_learning_rate(optimizer, lr, epoch):
     decay = int(epoch / 20)
     for param_group in optimizer.param_groups:
-        param_group['lr'] = lr * np.pow(0.1, decay)
+        param_group['lr'] = lr * np.power(0.1, decay)
             
                 
 if __name__ == '__main__':
